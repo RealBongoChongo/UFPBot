@@ -1,0 +1,527 @@
+{
+    "485513915548041239": {
+        "latinum": {
+            "slips": 10146767,
+            "strips": 1641115,
+            "bars": 2846178
+        },
+        "ships": {
+            "Guerilla Class Ship": {
+                "tier": 1,
+                "name": "Guerilla Class Ship",
+                "equipment": {
+                    "sg": null,
+                    "sif": null,
+                    "p": null,
+                    "tl": null,
+                    "dt": null
+                },
+                "deuterium": 0,
+                "hull": 0,
+                "shields": 0
+            }
+        },
+        "equipped": {
+            "tier": 1,
+            "name": "Guerilla Class Ship",
+            "equipment": {
+                "sg": {
+                    "tier": "MK V",
+                    "cost": 50000,
+                    "capacity": 100000
+                },
+                "sif": {
+                    "tier": "MK V",
+                    "cost": 100000,
+                    "capacity": 100000
+                },
+                "p": {
+                    "tier": "MK III",
+                    "cost": 25000,
+                    "damage": 500
+                },
+                "tl": {
+                    "tier": "MK III",
+                    "cost": 50000,
+                    "damage": 1000
+                },
+                "dt": {
+                    "tier": "MK IV",
+                    "cost": 100000,
+                    "capacity": 2500
+                }
+            },
+            "deuterium": 0,
+            "hull": 100000,
+            "shields": 72650
+        },
+        "equipment": {
+            "Shield Generators": [
+                {
+                    "tier": "MK I",
+                    "cost": 100,
+                    "capacity": 500
+                },
+                {
+                    "tier": "MK V",
+                    "cost": 50000,
+                    "capacity": 100000
+                }
+            ],
+            "Structural Integrity Fields": [
+                {
+                    "tier": "MK I",
+                    "cost": 200,
+                    "capacity": 500
+                },
+                {
+                    "tier": "MK V",
+                    "cost": 100000,
+                    "capacity": 100000
+                }
+            ],
+            "Phasers": [
+                {
+                    "tier": "MK I",
+                    "cost": 1000,
+                    "damage": 25
+                },
+                {
+                    "tier": "MK III",
+                    "cost": 25000,
+                    "damage": 500
+                }
+            ],
+            "Torpedo Launchers": [
+                {
+                    "tier": "MK I",
+                    "cost": 2500,
+                    "damage": 50
+                },
+                {
+                    "tier": "MK III",
+                    "cost": 50000,
+                    "damage": 1000
+                }
+            ],
+            "Deuterium Tanks": [
+                {
+                    "tier": "MK I",
+                    "cost": 2500,
+                    "capacity": 25
+                },
+                {
+                    "tier": "MK IV",
+                    "cost": 100000,
+                    "capacity": 2500
+                }
+            ]
+        },
+        "thing": false
+    },
+    "479528413980524545": {
+        "latinum": {
+            "slips": 0,
+            "strips": 0,
+            "bars": 311
+        },
+        "ships": {
+            "Guerilla Class Ship": {
+                "tier": 1,
+                "name": "Guerilla Class Ship",
+                "equipment": {
+                    "sg": null,
+                    "sif": null,
+                    "p": null,
+                    "tl": null,
+                    "dt": null
+                },
+                "deuterium": 0,
+                "hull": 0,
+                "shields": 0
+            }
+        },
+        "equipped": {
+            "tier": 1,
+            "name": "Guerilla Class Ship",
+            "equipment": {
+                "sg": null,
+                "sif": null,
+                "p": null,
+                "tl": null,
+                "dt": null
+            },
+            "deuterium": 0,
+            "hull": 0,
+            "shields": 0
+        },
+        "equipment": {
+            "Shield Generators": [],
+            "Structural Integrity Fields": [],
+            "Phasers": [],
+            "Torpedo Launchers": [],
+            "Deuterium Tanks": []
+        },
+        "thing": false
+    },
+    "879814338674827324": {
+        "latinum": {
+            "slips": 5292872,
+            "strips": 911294,
+            "bars": 235035
+        },
+        "ships": {
+            "Guerilla Class Ship": {
+                "tier": 1,
+                "name": "Guerilla Class Ship",
+                "equipment": {
+                    "sg": null,
+                    "sif": null,
+                    "p": null,
+                    "tl": null,
+                    "dt": null
+                },
+                "deuterium": 0,
+                "hull": 0,
+                "shields": 0
+            }
+        },
+        "equipped": {
+            "tier": 1,
+            "name": "Guerilla Class Ship",
+            "equipment": {
+                "sg": {
+                    "tier": "MK III",
+                    "cost": 2500,
+                    "capacity": 10000
+                },
+                "sif": {
+                    "tier": "MK III",
+                    "cost": 5000,
+                    "capacity": 10000
+                },
+                "p": {
+                    "tier": "MK IV",
+                    "cost": 100000,
+                    "damage": 2500
+                },
+                "tl": {
+                    "tier": "MK IV",
+                    "cost": 250000,
+                    "damage": 5000
+                },
+                "dt": {
+                    "tier": "MK II",
+                    "cost": 5000,
+                    "capacity": 125
+                }
+            },
+            "deuterium": 125,
+            "hull": 10000,
+            "shields": 10000
+        },
+        "equipment": {
+            "Shield Generators": [
+                {
+                    "tier": "MK III",
+                    "cost": 2500,
+                    "capacity": 10000
+                }
+            ],
+            "Structural Integrity Fields": [
+                {
+                    "tier": "MK III",
+                    "cost": 5000,
+                    "capacity": 10000
+                }
+            ],
+            "Phasers": [
+                {
+                    "tier": "MK II",
+                    "cost": 5000,
+                    "damage": 100
+                },
+                {
+                    "tier": "MK IV",
+                    "cost": 100000,
+                    "damage": 2500
+                }
+            ],
+            "Torpedo Launchers": [
+                {
+                    "tier": "MK II",
+                    "cost": 10000,
+                    "damage": 250
+                },
+                {
+                    "tier": "MK IV",
+                    "cost": 250000,
+                    "damage": 5000
+                }
+            ],
+            "Deuterium Tanks": [
+                {
+                    "tier": "MK II",
+                    "cost": 5000,
+                    "capacity": 125
+                }
+            ]
+        },
+        "thing": false
+    },
+    "404079454910939158": {
+        "latinum": {
+            "slips": 0,
+            "strips": 0,
+            "bars": 0
+        },
+        "ships": {},
+        "equipped": null,
+        "equipment": {
+            "Shield Generators": [],
+            "Structural Integrity Fields": [],
+            "Phasers": [],
+            "Torpedo Launchers": [],
+            "Deuterium Tanks": []
+        },
+        "thing": false
+    },
+    "724994961589796966": {
+        "latinum": {
+            "slips": 0,
+            "strips": 0,
+            "bars": 200
+        },
+        "ships": {},
+        "equipped": null,
+        "equipment": {
+            "Shield Generators": [],
+            "Structural Integrity Fields": [],
+            "Phasers": [],
+            "Torpedo Launchers": [],
+            "Deuterium Tanks": []
+        },
+        "thing": false
+    },
+    "1114374305820721192": {
+        "latinum": {
+            "slips": 0,
+            "strips": 50,
+            "bars": 0
+        },
+        "ships": {},
+        "equipped": null,
+        "equipment": {
+            "Shield Generators": [],
+            "Structural Integrity Fields": [],
+            "Phasers": [],
+            "Torpedo Launchers": [],
+            "Deuterium Tanks": []
+        },
+        "thing": false
+    },
+    "789916839210909705": {
+        "latinum": {
+            "slips": 0,
+            "strips": 50,
+            "bars": 0
+        },
+        "ships": {},
+        "equipped": null,
+        "equipment": {
+            "Shield Generators": [],
+            "Structural Integrity Fields": [],
+            "Phasers": [],
+            "Torpedo Launchers": [],
+            "Deuterium Tanks": []
+        },
+        "thing": false
+    },
+    "461603455107203075": {
+        "latinum": {
+            "slips": 0,
+            "strips": 0,
+            "bars": 900
+        },
+        "ships": {},
+        "equipped": null,
+        "equipment": {
+            "Shield Generators": [],
+            "Structural Integrity Fields": [],
+            "Phasers": [],
+            "Torpedo Launchers": [],
+            "Deuterium Tanks": []
+        },
+        "thing": false
+    },
+    "441003064179163150": {
+        "latinum": {
+            "slips": 0,
+            "strips": 420,
+            "bars": 69
+        },
+        "ships": {},
+        "equipped": null,
+        "equipment": {
+            "Shield Generators": [],
+            "Structural Integrity Fields": [],
+            "Phasers": [],
+            "Torpedo Launchers": [],
+            "Deuterium Tanks": []
+        },
+        "thing": false
+    },
+    "398683721810575362": {
+        "latinum": {
+            "slips": 0,
+            "strips": 50,
+            "bars": 0
+        },
+        "ships": {},
+        "equipped": null,
+        "equipment": {
+            "Shield Generators": [],
+            "Structural Integrity Fields": [],
+            "Phasers": [],
+            "Torpedo Launchers": [],
+            "Deuterium Tanks": []
+        },
+        "thing": false
+    },
+    "624541487073460235": {
+        "latinum": {
+            "slips": 0,
+            "strips": 120,
+            "bars": 0
+        },
+        "ships": {},
+        "equipped": null,
+        "equipment": {
+            "Shield Generators": [],
+            "Structural Integrity Fields": [],
+            "Phasers": [],
+            "Torpedo Launchers": [],
+            "Deuterium Tanks": []
+        },
+        "thing": false
+    },
+    "760189346363736125": {
+        "latinum": {
+            "slips": 0,
+            "strips": 20,
+            "bars": 0
+        },
+        "ships": {},
+        "equipped": null,
+        "equipment": {
+            "Shield Generators": [],
+            "Structural Integrity Fields": [],
+            "Phasers": [],
+            "Torpedo Launchers": [],
+            "Deuterium Tanks": []
+        },
+        "thing": false
+    },
+    "903763169300873257": {
+        "latinum": {
+            "slips": 0,
+            "strips": 0,
+            "bars": 1406
+        },
+        "ships": {},
+        "equipped": null,
+        "equipment": {
+            "Shield Generators": [],
+            "Structural Integrity Fields": [],
+            "Phasers": [],
+            "Torpedo Launchers": [],
+            "Deuterium Tanks": []
+        },
+        "thing": false
+    },
+    "974681958338687006": {
+        "latinum": {
+            "slips": 0,
+            "strips": 49,
+            "bars": 0
+        },
+        "ships": {},
+        "equipped": null,
+        "equipment": {
+            "Shield Generators": [],
+            "Structural Integrity Fields": [],
+            "Phasers": [],
+            "Torpedo Launchers": [],
+            "Deuterium Tanks": []
+        },
+        "thing": false
+    },
+    "1086762716657635429": {
+        "latinum": {
+            "slips": 0,
+            "strips": 10,
+            "bars": 0
+        },
+        "ships": {},
+        "equipped": null,
+        "equipment": {
+            "Shield Generators": [],
+            "Structural Integrity Fields": [],
+            "Phasers": [],
+            "Torpedo Launchers": [],
+            "Deuterium Tanks": []
+        },
+        "thing": false
+    },
+    "658774365261004801": {
+        "latinum": {
+            "slips": 0,
+            "strips": 10,
+            "bars": 0
+        },
+        "ships": {},
+        "equipped": null,
+        "equipment": {
+            "Shield Generators": [],
+            "Structural Integrity Fields": [],
+            "Phasers": [],
+            "Torpedo Launchers": [],
+            "Deuterium Tanks": []
+        },
+        "thing": false
+    },
+    "1115710081246449664": {
+        "latinum": {
+            "slips": 0,
+            "strips": 10,
+            "bars": 0
+        },
+        "ships": {},
+        "equipped": null,
+        "equipment": {
+            "Shield Generators": [],
+            "Structural Integrity Fields": [],
+            "Phasers": [],
+            "Torpedo Launchers": [],
+            "Deuterium Tanks": []
+        },
+        "thing": false
+    },
+    "753595754446192650": {
+        "latinum": {
+            "slips": 0,
+            "strips": 16,
+            "bars": 0
+        },
+        "ships": {},
+        "equipped": null,
+        "equipment": {
+            "Shield Generators": [],
+            "Structural Integrity Fields": [],
+            "Phasers": [],
+            "Torpedo Launchers": [],
+            "Deuterium Tanks": []
+        },
+        "thing": false
+    }
+}
