@@ -1508,4 +1508,4 @@ async def on_message_edit(before, after):
 
 Thread(target=webserver.run).start()
 Thread(target=mentionedTask).start()
-bot.run(os.getenv("token"))
+bot.run(getConfig("token"))
