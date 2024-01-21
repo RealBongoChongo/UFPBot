@@ -26,10 +26,8 @@ import re
 import asyncio
 from gpiozero import CPUTemperature
 import psutil
-import googletrans
 import plotly.express as px
 import pandas as pd
-translator = googletrans.Translator()
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -1441,10 +1439,11 @@ async def on_message(message):
             channel = await UFP.fetch_channel(1051489091339956235)
 
             await channel.send("{}: {}".format(message.author, message.content))
-
+"""
     detection = translator.detect(message.content)
     if detection.lang != "en" and message.author != bot.user and translator.translate(message.content, dest="en").text != message.content:
         await message.reply("Translation (`{}` {}% Confidence): {}".format(detection.lang, int(detection.confidence * 100), translator.translate(message.content, dest="en").text))
+"""
 
 
 @bot.event
