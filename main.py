@@ -1397,7 +1397,7 @@ async def on_message(message):
     moderationResults = moderationMessage.results[0]
 
     if moderationResults.flagged and not message.author.bot:
-        for flag, value in moderationResults.categories.items():
+        for flag, value in moderationResults.categories.model_dump().items():
             if value and (flag in flagPunishments.keys()):
                 punishments.append(flagPunishments[flag])
 
@@ -1421,7 +1421,7 @@ async def on_message(message):
                 embed = discord.Embed(
                     title="Flagged Message",
                     description="Your message has been flagged as being against the rules\n\n-- Scores: --\n{}".format(
-                        "\n".join(["{} score: {}".format(flag.capitalize(), str(int(score * 100) / 100)) for flag, score in moderationResults["category_scores"].items() if moderationResults["categories"][flag] and (flag in flagPunishments.keys())])
+                        "\n".join(["{} score: {}".format(flag.capitalize(), str(int(score * 100) / 100)) for flag, score in moderationResults.category_scores.model_dump().items() if moderationResults.categories.model_dump()[flag] and (flag in flagPunishments.keys())])
                     )
                 )
                 await message.reply(embed=embed)
@@ -1429,7 +1429,7 @@ async def on_message(message):
                 embed = discord.Embed(
                     title="Flagged Message",
                     description="Your message has been flagged as being against the rules\n\n-- Scores: --\n{}".format(
-                        "\n".join(["{} score: {}".format(flag.capitalize(), str(int(score * 100) / 100)) for flag, score in moderationResults["category_scores"].items() if moderationResults["categories"][flag] and (flag in flagPunishments.keys())])
+                        "\n".join(["{} score: {}".format(flag.capitalize(), str(int(score * 100) / 100)) for flag, score in moderationResults.category_scores.model_dump().items() if moderationResults.categories.model_dump()[flag] and (flag in flagPunishments.keys())])
                     )
                 )
                 await message.reply(embed=embed)
@@ -1462,7 +1462,7 @@ async def on_message_edit(before, after):
     moderationResults = moderationMessage.results[0]
 
     if moderationResults.flagged and not message.author.bot:
-        for flag, value in moderationResults.categories.items():
+        for flag, value in moderationResults.categories.model_dump().items():
             if value and (flag in flagPunishments.keys()):
                 punishments.append(flagPunishments[flag])
 
@@ -1486,7 +1486,7 @@ async def on_message_edit(before, after):
                 embed = discord.Embed(
                     title="Flagged Message",
                     description="Your message has been flagged as being against the rules\n\n-- Scores: --\n{}".format(
-                        "\n".join(["{} score: {}".format(flag.capitalize(), str(int(score * 100) / 100)) for flag, score in moderationResults["category_scores"].items() if moderationResults["categories"][flag] and (flag in flagPunishments.keys())])
+                        "\n".join(["{} score: {}".format(flag.capitalize(), str(int(score * 100) / 100)) for flag, score in moderationResults.category_scores.model_dump().items() if moderationResults.categories.model_dump()[flag] and (flag in flagPunishments.keys())])
                     )
                 )
                 await message.reply(embed=embed)
@@ -1494,7 +1494,7 @@ async def on_message_edit(before, after):
                 embed = discord.Embed(
                     title="Flagged Message",
                     description="Your message has been flagged as being against the rules\n\n-- Scores: --\n{}".format(
-                        "\n".join(["{} score: {}".format(flag.capitalize(), str(int(score * 100) / 100)) for flag, score in moderationResults["category_scores"].items() if moderationResults["categories"][flag] and (flag in flagPunishments.keys())])
+                        "\n".join(["{} score: {}".format(flag.capitalize(), str(int(score * 100) / 100)) for flag, score in moderationResults.category_scores.model_dump().items() if moderationResults.categories.model_dump()[flag] and (flag in flagPunishments.keys())])
                     )
                 )
                 await message.reply(embed=embed)
