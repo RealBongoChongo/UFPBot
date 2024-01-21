@@ -28,13 +28,17 @@ from gpiozero import CPUTemperature
 import psutil
 import plotly.express as px
 import pandas as pd
-from dotenv import load_dotenv
-
-load_dotenv()
-
 import openai
 
-openai.api_key = os.getenv("openai")
+def getConfig(key):
+    with open("config.json", "r") as f:
+        data = json.load(f)
+
+    return data[key]
+
+client = openai.Client(
+    api_key=getConfig("openai")
+)
 
 from PIL import ImageDraw, Image, ImageFont
 
@@ -638,7 +642,7 @@ async def serverInfo(ctx):
 
 @bot.command(name="edit", description="For Captains+ | Edit announcement message")
 @discord.commands.option("message", description="Use \"\\n\" for a new line")
-async def announceEdit(ctx, messageid, message, ping:bool=False):
+async def announceEdit(ctx, messageid, message, publish:bool=False):
     messageid = int(messageid)
     UFP = await bot.fetch_guild(878364507385233480)
     captain = discord.utils.get(UFP.roles, id=878367800937304146)
@@ -651,13 +655,8 @@ async def announceEdit(ctx, messageid, message, ping:bool=False):
         channel = await UFP.fetch_channel(878449851833151488)
         message = message.replace("\\n", "\n")
 
-        if ping:
-            if not ((VA in ctx.author.roles) or (ADM in ctx.author.roles) or (FADM in ctx.author.roles)):
-                ping = False
-                await ctx.respond("You need the rank of Vice Admiral to ping", ephemeral=True)
-
         msg = await channel.fetch_message(messageid)
-        await msg.edit(message + "\n\n`- {} {}`{}".format(await getRank(ctx.author), ctx.author.name, "" if not ping else "\n||<@&954234917846388826>||"))
+        await msg.edit(message + "\n\n`- {} {}`".format(await getRank(ctx.author), ctx.author.name))
 
         if publish:
             try:
@@ -1390,15 +1389,15 @@ async def on_message(message):
     }
 
     punishments = []
-
-    moderationMessage = openai.Moderation.create(
+    
+    moderationMessage = client.moderations.create(
         input=message.content
     )
 
-    moderationResults = moderationMessage["results"][0]
+    moderationResults = moderationMessage.results[0]
 
-    if moderationResults["flagged"] and not message.author.bot:
-        for flag, value in moderationResults["categories"].items():
+    if moderationResults.flagged and not message.author.bot:
+        for flag, value in moderationResults.categories.items():
             if value and (flag in flagPunishments.keys()):
                 punishments.append(flagPunishments[flag])
 
@@ -1456,14 +1455,14 @@ async def on_message_edit(before, after):
 
     punishments = []
 
-    moderationMessage = openai.Moderation.create(
+    moderationMessage = client.moderations.create(
         input=message.content
     )
 
-    moderationResults = moderationMessage["results"][0]
+    moderationResults = moderationMessage.results[0]
 
-    if moderationResults["flagged"] and not message.author.bot:
-        for flag, value in moderationResults["categories"].items():
+    if moderationResults.flagged and not message.author.bot:
+        for flag, value in moderationResults.categories.items():
             if value and (flag in flagPunishments.keys()):
                 punishments.append(flagPunishments[flag])
 
