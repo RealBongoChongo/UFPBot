@@ -30,6 +30,8 @@ import plotly.express as px
 import pandas as pd
 import openai
 
+os.chdir("/home/bongo/Downloads/UFPAnnouncements")
+
 def getConfig(key):
     with open("config.json", "r") as f:
         data = json.load(f)
@@ -48,8 +50,6 @@ colors = {
     "Bright Purple": "#CB99CC",
     "Blonde": "#E7BD63"
 }
-
-os.chdir("/home/bongo/Downloads/UFPAnnouncements")
 
 bot = discord.Bot(intents=discord.Intents.all())
 latinumTypes = ["Bars", "Strips", "Slips"]
