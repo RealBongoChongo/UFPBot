@@ -1328,6 +1328,9 @@ async def recognizeFaction(ctx, faction):
     with open("json/factions.json", "r") as f:
         data = json.load(f)
 
+    if faction in data["factions"]:
+        await ctx.respond("Faction already recognized")
+
     data["factions"].append(faction)
 
     with open("json/factions.json", "w") as f:
