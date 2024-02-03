@@ -29,8 +29,15 @@ import psutil
 import plotly.express as px
 import pandas as pd
 import openai
+import argparse
+parser = argparse.ArgumentParser()
 
-os.chdir("/home/bongo/Downloads/UFPAnnouncements")
+parser.add_argument("-d", "--development", help="Runs outside raspberry pi")
+
+args = parser.parse_args()
+
+if not args.development:
+    os.chdir("/home/bongo/Downloads/UFPAnnouncements")
 
 def getConfig(key):
     with open("config.json", "r") as f:
@@ -158,7 +165,7 @@ def wrapString(string):
 
     return final
 
-@bot.command(name="editmessage", description="Edit a message that UFP Bot has in a channel")
+@bot.command(name="editmessage", description="Edit a message that UFP Bot has in a channel", guild_ids=[878364507385233480])
 async def editmessage(ctx, channel: discord.TextChannel, content: discord.Attachment, borders: bool=False, charterimage: bool = False):
     await ctx.defer()
     fileContent = await content.read()
@@ -247,7 +254,7 @@ async def pispecs(ctx):
 
     await ctx.respond(embed=embed)
 
-@bot.command(name="personnel-report", description="Get a personnel report on a person")
+@bot.command(name="personnel-report", description="Get a personnel report on a person", guild_ids=[878364507385233480])
 async def personnelReport(ctx, member:discord.Member = None):
     await ctx.defer()
     member = member or ctx.author
@@ -314,7 +321,7 @@ async def personnelReport(ctx, member:discord.Member = None):
 
 offDuty = bot.create_group("off_duty", "Mark yourself as off duty or extend your duration")
 
-@offDuty.command(name="start", description="AFK command or to tell people ur on vacation")
+@offDuty.command(name="start", description="AFK command or to tell people ur on vacation", guild_ids=[878364507385233480])
 @discord.option("eventtype", description="Type of event that this is.", choices=["AFK", "on Vacation", "Doing Tomfuckery"])
 async def offDutyStart(ctx, duration: TimeConverter, eventtype, endwhentext:bool=True, message=None):
     if str(ctx.author.id) in offduty.getUsers():
@@ -326,7 +333,7 @@ async def offDutyStart(ctx, duration: TimeConverter, eventtype, endwhentext:bool
 
     await ctx.respond("People who ping you will now know that you are offline")
 
-@offDuty.command(name="extend")
+@offDuty.command(name="extend", guild_ids=[878364507385233480])
 async def offDutyExtend(ctx, duration: TimeConverter):
     if not str(ctx.author.id) in offduty.getUsers():
         return await ctx.respond("You are not marked as off duty")
@@ -335,7 +342,7 @@ async def offDutyExtend(ctx, duration: TimeConverter):
 
     await ctx.respond("Extended your duration to <t:{}:R>".format(newEnd))
 
-@offDuty.command(name="end")
+@offDuty.command(name="end", guild_ids=[878364507385233480])
 async def offDutyEnd(ctx):
     if not str(ctx.author.id) in offduty.getUsers():
         return await ctx.respond("You are not marked as off duty")
@@ -344,7 +351,7 @@ async def offDutyEnd(ctx):
 
     await ctx.respond("Welcome back.")
 
-@bot.command(name="announce", description="For Captains+")
+@bot.command(name="announce", description="For Captains+", guild_ids=[878364507385233480])
 @discord.commands.option("message", description="Use \"\\n\" for a new line")
 async def announce(ctx, message, ping:bool=False, publish:bool=False):
     await ctx.defer()
@@ -406,13 +413,13 @@ class Relations(discord.ext.commands.Cog):
     createRelation = relations.create_subgroup("create", "Create faction relations")
     removeRelation = relations.create_subgroup("remove", "Remove faction relations")
 
-    @relations.command(name="update", description="Update relations")
+    @relations.command(name="update", description="Update relations", guild_ids=[878364507385233480])
     async def relationsUpdate(self, ctx):
         await ctx.defer()
         await updateRelations()
         await ctx.respond("Updated")
 
-    @createRelation.command(name="ally", description="Add an ally to faction relations")
+    @createRelation.command(name="ally", description="Add an ally to faction relations", guild_ids=[878364507385233480])
     async def createAlly(self, ctx, faction):
         await ctx.defer()
         result = relations.addAlly(faction)
@@ -423,7 +430,7 @@ class Relations(discord.ext.commands.Cog):
         await ctx.respond("Marked this faction as allied")
         await updateRelations()
 
-    @removeRelation.command(name="ally", description="Remove an ally from faction relations")
+    @removeRelation.command(name="ally", description="Remove an ally from faction relations", guild_ids=[878364507385233480])
     @discord.commands.option("faction", autocomplete=getAllies)
     async def removeAlly(self, ctx, faction):
         await ctx.defer()
@@ -433,7 +440,7 @@ class Relations(discord.ext.commands.Cog):
         await ctx.respond("Removed this faction from allied list")
         await updateRelations()
 
-    @createRelation.command(name="friendly", description="Add a friendly to faction relations")
+    @createRelation.command(name="friendly", description="Add a friendly to faction relations", guild_ids=[878364507385233480])
     async def createFriendly(self, ctx, faction):
         await ctx.defer()
         result = relations.addFriendly(faction)
@@ -444,7 +451,7 @@ class Relations(discord.ext.commands.Cog):
         await ctx.respond("Marked this faction as friendly")
         await updateRelations()
 
-    @removeRelation.command(name="friendly", description="Remove a friendly from faction relations")
+    @removeRelation.command(name="friendly", description="Remove a friendly from faction relations", guild_ids=[878364507385233480])
     @discord.commands.option("faction", autocomplete=getFriendlies)
     async def removeFriendly(self, ctx, faction):
         await ctx.defer()
@@ -454,7 +461,7 @@ class Relations(discord.ext.commands.Cog):
         await ctx.respond("Removed this faction from friendly list")
         await updateRelations()
 
-    @createRelation.command(name="enemy", description="Add an enemy to faction relations")
+    @createRelation.command(name="enemy", description="Add an enemy to faction relations", guild_ids=[878364507385233480])
     @discord.commands.option("enemytype", autocomplete=getTypes)
     async def createEnemy(self, ctx, entity, enemytype):
         await ctx.defer()
@@ -466,7 +473,7 @@ class Relations(discord.ext.commands.Cog):
         await ctx.respond("Marked this entity as an enemy")
         await updateRelations()
 
-    @removeRelation.command(name="enemy", description="Remove an enemy from faction relations")
+    @removeRelation.command(name="enemy", description="Remove an enemy from faction relations", guild_ids=[878364507385233480])
     @discord.commands.option("entity", autocomplete=getEnemies)
     async def removeEnemy(self, ctx, entity):
         await ctx.defer()
@@ -478,7 +485,7 @@ class Relations(discord.ext.commands.Cog):
 
 bot.add_cog(Relations(bot))
 
-@bot.command(name="srads", description="For Admirals+ | Sets SRADS Level and Sets Up Server Accordingly")
+@bot.command(name="srads", description="For Admirals+ | Sets SRADS Level and Sets Up Server Accordingly", guild_ids=[878364507385233480])
 async def setSrads(ctx, level:int):
     UFP = await bot.fetch_guild(878364507385233480)
     captain = discord.utils.get(UFP.roles, id=878367800937304146)
@@ -505,25 +512,7 @@ async def setSrads(ctx, level:int):
                 wartimeChannel = await UFP.fetch_channel(srads.getWartimeChannel())
                 await wartimeChannel.delete()
         else:
-            if level == 4:
-                for member in ctx.guild.members:
-                    if (captain in member.roles) or (RALH in member.roles) or (RAUH in member.roles) or (VA in member.roles) or (ADM in member.roles) or (FADM in member.roles):
-                        continue
-                    else:
-                        if commissioned in member.roles and ambassador in member.roles:
-                            await member.remove_roles(commissioned)
-                            await member.add_roles(restricted)
-
             if level == 3:
-                if srads.getLevel() > 4:
-                    for member in ctx.guild.members:
-                        if (captain in member.roles) or (RALH in member.roles) or (RAUH in member.roles) or (VA in member.roles) or (ADM in member.roles) or (FADM in member.roles):
-                            continue
-                        else:
-                            if commissioned in member.roles and ambassador in member.roles:
-                                await member.remove_roles(commissioned)
-                                await member.add_roles(restricted)
-
                 overwrites = {
                     UFP.default_role: discord.PermissionOverwrite(view_channel=False),
                     captain: discord.PermissionOverwrite(view_channel=True, send_messages=True),
@@ -542,15 +531,6 @@ async def setSrads(ctx, level:int):
                 srads.setWartimeChannel(wartimeChannel.id)
 
             if level < 3:
-                if srads.getLevel() > 4:
-                    for member in ctx.guild.members:
-                        if (captain in member.roles) or (RALH in member.roles) or (RAUH in member.roles) or (VA in member.roles) or (ADM in member.roles) or (FADM in member.roles):
-                            continue
-                        else:
-                            if commissioned in member.roles and ambassador in member.roles:
-                                await member.remove_roles(commissioned)
-                                await member.add_roles(restricted)
-
                 if srads.getLevel() > 3:
                     overwrites = {
                         UFP.default_role: discord.PermissionOverwrite(view_channel=False),
@@ -568,7 +548,7 @@ async def setSrads(ctx, level:int):
 
         messages = {
             "5": "The Federation is at no threat and no special action is being taken.",
-            "4": "The Federation has increased attention on other factions and strengthened security. All officers that are ambassadors have decreased access in the server",
+            "4": "The Federation has increased attention on other factions and strengthened security. Officers affiliated to those who caused this will experience decreased access in the server.",
             "3": "The Federation is above normal readiness, task-forces are deployed, and <@&958097146761084958> is in full activation. <#{}> is opened to unrestricted commissioned personnel".format(srads.getWartimeChannel()),
             "2": "The Federation is in danger, all personnel are ready to deploy. ( <@&946227554136764416> personnel are asked to become active.)",
             "1": "The Federation's very existence is at threat, maximum readiness is in effect."
@@ -581,7 +561,7 @@ async def setSrads(ctx, level:int):
     else:
         await ctx.respond("Invalid SRADS Level")
 
-@bot.command(name="server", description="See the member counnt")
+@bot.command(name="server", description="See the member count", guild_ids=[878364507385233480])
 async def serverInfo(ctx):
     await ctx.defer()
 
@@ -640,7 +620,7 @@ async def serverInfo(ctx):
 
     await ctx.respond(embed=embed, file=discord.File("utility/chart.png"))
 
-@bot.command(name="edit", description="For Captains+ | Edit announcement message")
+@bot.command(name="edit", description="For Captains+ | Edit announcement message", guild_ids=[878364507385233480])
 @discord.commands.option("message", description="Use \"\\n\" for a new line")
 async def announceEdit(ctx, messageid, message, publish:bool=False):
     messageid = int(messageid)
@@ -668,7 +648,7 @@ async def announceEdit(ctx, messageid, message, publish:bool=False):
     else:
         await ctx.respond("You do not have atleast the rank of Captain", ephemeral=True)
 
-@bot.command(name="balance", description="Check your amoung of latinum")
+@bot.command(name="balance", description="Check your amoung of latinum", guild_ids=[878364507385233480])
 async def balance(ctx, member:discord.Member=None):
     data = jsonhandler.getAccount(member or ctx.author)
 
@@ -679,7 +659,7 @@ async def balance(ctx, member:discord.Member=None):
 
     await ctx.respond(embed=embed)
 
-@bot.command(name="exchange", description="Exchange your latinum for different pieces of latinum")
+@bot.command(name="exchange", description="Exchange your latinum for different pieces of latinum", guild_ids=[878364507385233480])
 @discord.commands.option("latinumfrom", autocomplete=getLatinumTypes)
 @discord.commands.option("latinumto", autocomplete=getLatinumTypes)
 async def exchangeLatinum(ctx, latinumfrom, latinumto, amount:int=None):
@@ -700,7 +680,7 @@ async def exchangeLatinum(ctx, latinumfrom, latinumto, amount:int=None):
 
     await ctx.respond("Done.")
 
-@bot.command(name="share", description="Scam people or graciously give latinum to people")
+@bot.command(name="share", description="Scam people or graciously give latinum to people", guild_ids=[878364507385233480])
 @discord.commands.option("latinumtype", autocomplete=getLatinumTypes)
 async def shareLatinum(ctx, latinumtype, amount:int, member:discord.Member):
     if not latinumtype.lower() in latinumTypesLower:
@@ -721,7 +701,7 @@ async def shareLatinum(ctx, latinumtype, amount:int, member:discord.Member):
 
     await ctx.respond("Successfully transferred")
 
-@bot.command(name="leaderboard", description="Find out who is the richest in latinum")
+@bot.command(name="leaderboard", description="Find out who is the richest in latinum", guild_ids=[878364507385233480])
 async def leaderboardLatinum(ctx):
     networths = jsonhandler.getNetworths()
     leaderboard = sorted(networths, key=lambda x: x["networth"], reverse=True)
@@ -739,7 +719,7 @@ async def leaderboardLatinum(ctx):
 
     await ctx.respond(embed=em)
 
-@bot.command(name="slots", description="Win some latinum")
+@bot.command(name="slots", description="Win some latinum", guild_ids=[878364507385233480])
 @discord.commands.option("latinumtype", autocomplete=getLatinumTypes)
 async def slotsGame(ctx, latinumtype, amount:int):
     if not latinumtype.lower() in latinumTypesLower:
@@ -801,7 +781,7 @@ async def slotsGame(ctx, latinumtype, amount:int):
 
     await ctx.respond(embed=embed)
 
-@bot.command(name="snakeeyes", description="Win some latinum")
+@bot.command(name="snakeeyes", description="Win some latinum", guild_ids=[878364507385233480])
 @discord.commands.option("latinumtype", autocomplete=getLatinumTypes)
 async def snakeeyesGame(ctx, latinumtype, amount:int):
     if not latinumtype.lower() in latinumTypesLower:
@@ -848,7 +828,7 @@ async def snakeeyesGame(ctx, latinumtype, amount:int):
 
     await ctx.respond(embed=embed)
 
-@bot.command(name="blackjack", description="Win some latinum")
+@bot.command(name="blackjack", description="Win some latinum", guild_ids=[878364507385233480])
 @discord.commands.option("latinumtype", autocomplete=getLatinumTypes)
 async def blackjackGame(ctx, latinumtype, amount:int):
     if not latinumtype.lower() in latinumTypesLower:
@@ -898,7 +878,7 @@ async def blackjackGame(ctx, latinumtype, amount:int):
 
     await msg.edit_original_response(embed=embed, view=view)
 
-@bot.command(name="free", description="Only works if you are broke")
+@bot.command(name="free", description="Only works if you are broke", guild_ids=[878364507385233480])
 async def freeLatinum(ctx):
     data = jsonhandler.getAccount(ctx.author)
 
@@ -911,7 +891,7 @@ async def freeLatinum(ctx):
 
 shopGroup = bot.create_group("shop", "Buy some ships or equipment")
 
-@shopGroup.command(name="ships", description="Buy some ships")
+@shopGroup.command(name="ships", description="Buy some ships", guild_ids=[878364507385233480])
 async def shipShop(ctx):
     embed = discord.Embed(
         title="Ship Shop",
@@ -931,7 +911,7 @@ async def shipShop(ctx):
 
     await ctx.respond(embed=embed, view=ships.Interface(ctx))
 
-@shopGroup.command(name="equipment", description="Buy some ship equipment")
+@shopGroup.command(name="equipment", description="Buy some ship equipment", guild_ids=[878364507385233480])
 async def equipmentShop(ctx):
     embed = discord.Embed(
         title="Ship Equipment Shop",
@@ -940,7 +920,7 @@ async def equipmentShop(ctx):
     
     await ctx.respond(embed=embed, view=upgrades.Interface(ctx))
 
-@bot.command(name="ship", description="Look at ur ship stats")
+@bot.command(name="ship", description="Look at ur ship stats", guild_ids=[878364507385233480])
 async def shipView(ctx):
     data = jsonhandler.getAccount(ctx.author)
 
@@ -967,7 +947,7 @@ async def shipView(ctx):
 
 equipGroup = bot.create_group("equip", "Equip ships or equipment")
 
-@equipGroup.command(name="ship", description="Equip a ship")
+@equipGroup.command(name="ship", description="Equip a ship", guild_ids=[878364507385233480])
 async def equipShip(ctx):
     data = jsonhandler.getAccount(ctx.author)
 
@@ -992,7 +972,7 @@ async def equipShip(ctx):
 
     await ctx.respond(embed=embed, view=ships.EquipInterface(ctx) if data["ships"] else None)
 
-@equipGroup.command(name="equipment", description="Equip equipment on your ship")
+@equipGroup.command(name="equipment", description="Equip equipment on your ship", guild_ids=[878364507385233480])
 async def equipEquipment(ctx):
     data = jsonhandler.getAccount(ctx.author)
     if not data["equipped"]:
@@ -1005,7 +985,7 @@ async def equipEquipment(ctx):
     
     await ctx.respond(embed=embed, view=upgrades.EquipInterface(ctx))
 
-@bot.command(name="repair", description="Repair your ship")
+@bot.command(name="repair", description="Repair your ship", guild_ids=[878364507385233480])
 async def repairShip(ctx):
     data = jsonhandler.getAccount(ctx.author)
     if not data["equipped"]:
@@ -1025,14 +1005,14 @@ async def repairShip(ctx):
     jsonhandler.setShipAttribute(ctx.author, "hull", 0 if not data["equipped"]["equipment"]["sif"] else data["equipped"]["equipment"]["sif"]["capacity"] * data["equipped"]["tier"])
     await ctx.respond("Successfully repaired")
 
-@bot.command(name="autorepair", description="Setup auto-repair for after debris scrounging")
+@bot.command(name="autorepair", description="Setup auto-repair for after debris scrounging", guild_ids=[878364507385233480])
 async def autoRepair(ctx, setting:bool):
     data = jsonhandler.getAccount(ctx.author)
     jsonhandler.setSetting(ctx.author, setting)
 
     await ctx.respond("Successfully changed setting")
 
-@bot.command(name="debris", description="Scrounge through debris")
+@bot.command(name="debris", description="Scrounge through debris", guild_ids=[878364507385233480])
 async def debris(ctx):
     await ctx.defer()
     data = jsonhandler.getAccount(ctx.author)
@@ -1290,7 +1270,7 @@ async def reserveTask():
 
         jsonhandler.setActivity(total, commissioned, active, reserve, visitor, ambassador, int(datetime.datetime.now().timestamp()))
 
-@bot.command(name="warn", description="Warn a user with the rule broken included")
+@bot.command(name="warn", description="Warn a user with the rule broken included", guild_ids=[878364507385233480])
 async def warnUser(ctx, member:discord.Member, messagelink, rulecitation):
     if ctx.author.id == 485513915548041239 or discord.utils.get(ctx.guild.roles, id=891514201569366087) in ctx.author.roles:
         await ranks.demoteMember(member, ctx.guild)
@@ -1324,7 +1304,7 @@ async def warnUser(ctx, member:discord.Member, messagelink, rulecitation):
 
         await ctx.respond("Done.")
 
-@bot.command(name="warns", description="Check warns of a user")
+@bot.command(name="warns", description="Check warns of a user", guild_ids=[878364507385233480])
 async def checkwarns(ctx, member:discord.Member):
     if warns.getWarns(member):
         embed = discord.Embed(
@@ -1336,11 +1316,131 @@ async def checkwarns(ctx, member:discord.Member):
     else:
         await ctx.respond("No warns found")
 
-@bot.command(name="clearwarns", description="Clear warns of a user (LEAVE BLANK TO CLEAR ALL WARNS)")
+@bot.command(name="clearwarns", description="Clear warns of a user (LEAVE BLANK TO CLEAR ALL WARNS)", guild_ids=[878364507385233480])
 async def clearwarns(ctx, member:discord.Member=None):
     if ctx.author.id == 485513915548041239 or discord.utils.get(ctx.guild.roles, id=891514201569366087) in ctx.author.roles:
         warns.deleteWarns(member)
         await ctx.respond("Done")
+
+@bot.command(name="recognize", guild_ids=[878364507385233480])
+async def recognizeFaction(ctx, faction):
+    await ctx.defer()
+    with open("json/factions.json", "r") as f:
+        data = json.load(f)
+
+    data["factions"].append(faction)
+
+    with open("json/factions.json", "w") as f:
+        json.dump(data, f, indent = 4)
+
+    channel = await ctx.guild.fetch_channel(907062178346065960)
+    await channel.send("Now recognizing {} for affiliates".format(faction))
+    await ctx.respond("Now recognizing {} for affiliates".format(faction))
+
+async def getFactions(ctx):
+    with open("json/factions.json", "r") as f:
+        data = json.load(f)
+    return [faction for faction in data["factions"] if faction.startswith(ctx.value)]
+
+@bot.command(name="affiliate", description="Affiliate with a faction", guild_ids=[878364507385233480])
+@discord.commands.option("faction", description="CASE SENSITIVE", autocomplete=getFactions)
+async def affiliateFaction(ctx, faction, member: discord.Member=None):
+    await ctx.defer()
+    if member and not (discord.utils.get(ctx.guild.roles, id=891514201569366087) in ctx.author.roles):
+        return await ctx.respond("You do not have permissions to use this parameter")
+    member = member or ctx.author
+    with open("json/factions.json", "r") as f:
+        data = json.load(f)
+
+    if not (faction in data["factions"]):
+        return await ctx.respond("Faction not found (Check spelling and capitalization)")
+    
+    with open("json/affiliations.json", "r") as f:
+        data = json.load(f)
+
+    if not (str(member.id) in data):
+        data[str(member.id)] = []
+
+    if not (faction in data[str(member.id)]):
+        data[str(member.id)].append(faction)
+    
+    with open("json/affiliations.json", "w") as f:
+        json.dump(data, f, indent=4)
+    
+    await ctx.respond("Affiliations updated")
+
+@bot.command(name="affiliations", description="View your faction affiliations", guild_ids=[878364507385233480])
+async def affiliations(ctx, member: discord.Member=None):
+    member = member or ctx.author
+    await ctx.defer()
+
+    with open("json/affiliations.json") as f:
+        data = json.load(f)
+    
+    if not (str(member.id) in data):
+        data[str(member.id)] = []
+
+    embed = discord.Embed(
+        title="Affiliations",
+        color=0x0055ff,
+        description="\n".join([faction for faction in data[str(member.id)]])
+    )
+
+    await ctx.respond(embed=embed)
+
+@bot.command(name="restrict-affiliates", description="Restrict officers that are affiliated with a faction", guild_ids=[878364507385233480])
+@discord.commands.option("faction", description="CASE SENSITIVE", autocomplete=getFactions)
+async def restrictAffiliates(ctx, faction):
+    await ctx.defer()
+    with open("json/factions.json", "r") as f:
+        data = json.load(f)
+
+    if not (faction in data["factions"]):
+        return await ctx.respond("Faction not found (Check spelling and capitalization)")
+    
+    restricted = discord.utils.get(ctx.guild.roles, id=1122368049157255180)
+    commissioned = discord.utils.get(ctx.guild.roles, id=954234917846388826)
+
+    with open("json/affiliations.json") as f:
+        data = json.load(f)
+
+    for member in ctx.guild.members:
+        roles = member.roles
+        if str(member.id) in data and faction in data[str(member.id)]:
+            if commissioned in roles:
+                if not (restricted in roles):
+                    await member.add_roles(restricted)
+
+                await member.remove_roles(commissioned)
+
+    await ctx.respond("Restricted anyone affiliated with this faction")
+
+@bot.command(name="unrestrict-affiliates", description="Restrict officers that are affiliated with a faction", guild_ids=[878364507385233480])
+@discord.commands.option("faction", description="CASE SENSITIVE", autocomplete=getFactions)
+async def unrestrictAffiliates(ctx, faction):
+    await ctx.defer()
+    with open("json/factions.json", "r") as f:
+        data = json.load(f)
+
+    if not (faction in data["factions"]):
+        return await ctx.respond("Faction not found (Check spelling and capitalization)")
+    
+    restricted = discord.utils.get(ctx.guild.roles, id=1122368049157255180)
+    commissioned = discord.utils.get(ctx.guild.roles, id=954234917846388826)
+
+    with open("json/affiliations.json") as f:
+        data = json.load(f)
+
+    for member in ctx.guild.members:
+        roles = member.roles
+        if str(member.id) in data and faction in data[str(member.id)]:
+            if restricted in roles:
+                await member.remove_roles(restricted)
+            
+                if not (commissioned in roles):
+                    await member.add_roles(commissioned)
+
+    await ctx.respond("Unrestricted anyone affiliated with this faction")
 
 @bot.event
 async def on_ready():
