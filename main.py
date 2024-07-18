@@ -178,7 +178,7 @@ def createEventEmbed(Guild: discord.Guild, EventType: str, EventTimestamp: int, 
         title="United Federation of Planets",
         image=Guild.icon.url,
         footer="Secure Event- Do not share outside of UFP",
-        timestamp=datetime.datetime.now().timestamp(),
+        timestamp=datetime.datetime.now(),
         color=Colors[EventType]
     )
     StarterEmbed.add_field(name="Time", value="**In UTC**: {}\n**Relative**: <t:{}:R>".format(datetime.datetime.utcfromtimestamp(EventTimestamp), EventTimestamp), inline=True)
@@ -1268,7 +1268,7 @@ async def on_application_command_error(ctx, error):
             )
         await ctx.respond(embed=em, ephemeral=True)
     else:
-        await ctx.respond("The bot had the following error: \n```\n{}\n```".format(traceback.format_exception(etype=type(error), value=error, tb=error.__traceback__)), ephemeral=True)
+        await ctx.respond("The bot had the following error: \n```\n{}\n```".format(traceback.format_exception(etype=type(error), value=error, tb=error.__traceback__)).join(""), ephemeral=True)
 
 @tasks.loop(minutes=60)
 async def reserveTask():
