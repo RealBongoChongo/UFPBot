@@ -187,7 +187,7 @@ def createEventEmbed(Guild: discord.Guild, EventType: str, EventTimestamp: int, 
 
     return StarterEmbed
 
-@bot.command(name="create-event", description="Create a classified event for Commissioned Personnel", guild_ids=[878364507385233480])
+@bot.command(name="create-event", description="Create a classified event for Commissioned Personnel (TIME MUST BE IN UTC)", guild_ids=[878364507385233480])
 @discord.commands.option("eventtype", choices=["Training", "Patrol", "Workshop", "Testing", "Battle"])
 async def createEvent(ctx: discord.ApplicationContext, eventtype, eventnotes: str, eventday: int=None, eventmonth: int=None, eventyear: int=None, eventhour: int=None, eventminute: int=None):
     await ctx.defer()
@@ -204,6 +204,13 @@ async def createEvent(ctx: discord.ApplicationContext, eventtype, eventnotes: st
         hour=eventhour or nowTime.hour,
         minute=eventminute or nowTime.minute
     )
+
+    EventTimestamp += datetime.timedelta(hours=5)
+
+    if EventTimestamp < nowTime and EventTimestamp + datetime.timedelta(hours=12) >= nowTime:
+        EventTimestamp += datetime.timedelta(hours=12)
+    elif EventTimestamp < nowTime and EventTimestamp + datetime.timedelta(hours=12) < nowTime:
+        return await ctx.respond("Event time has already passed")
 
     try:
         Embed = createEventEmbed(ctx.guild, eventtype, int(EventTimestamp.timestamp()), ctx.author, eventnotes)
