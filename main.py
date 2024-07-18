@@ -237,6 +237,16 @@ async def GetEvent(ctx: discord.ApplicationContext, eventid: str):
 
     await ctx.respond(embed=CreateEventEmbed(ctx.guild, Event["EventType"], Event["EventTimestamp"], ctx.guild.get_member(Event["EventHost"]), Event["EventNotes"], Event["EventDuration"], eventid))
 
+@bot.command(name="delete-event", description="Delete an event created", guild_ids=[878364507385233480])
+async def DeleteEvent(ctx: discord.ApplicationContext, eventid: str):
+    Event = eventhandler.GetEvent(eventid)
+    if not Event:
+        return await ctx.respond("Event not found.")
+    
+    eventhandler.DeleteEvent(eventid)
+
+    await ctx.respond("Deleted")
+
 @tasks.loop(minutes=1)
 async def EventReminder():
     UFP = bot.get_guild(878364507385233480)
