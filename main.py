@@ -189,6 +189,7 @@ def createEventEmbed(Guild: discord.Guild, EventType: str, EventTimestamp: int, 
 
 @bot.command(name="create-event", description="Create a classified event for Commissioned Personnel (TIME MUST BE IN UTC)", guild_ids=[878364507385233480])
 @discord.commands.option("eventtype", choices=["Training", "Patrol", "Workshop", "Testing", "Battle"])
+@discord.commands.option("eventminute", choices=[0, 15, 30, 45])
 async def createEvent(ctx: discord.ApplicationContext, eventtype, eventnotes: str, eventday: int=None, eventmonth: int=None, eventyear: int=None, eventhour: int=None, eventminute: int=None):
     await ctx.defer()
 
