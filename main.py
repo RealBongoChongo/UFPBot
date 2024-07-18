@@ -270,7 +270,7 @@ async def EventReminder():
 
             await EventChannel.send("**This event starts in less than an hour.**", embed=EventEmbed)
 
-            eventhandler.EditEvent(EventID)
+            eventhandler.EditEvent(EventID, EventData)
 
         if EventData["EventTimestamp"] < TimestampNow and not EventData["Announced"]:
             EventData["Announced"] = True
@@ -279,7 +279,7 @@ async def EventReminder():
 
             await EventChannel.send("**This event has started.**", embed=EventEmbed)
 
-            eventhandler.EditEvent(EventID)
+            eventhandler.EditEvent(EventID, EventData)
 
 @bot.command(name="editmessage", description="Edit a message that UFP Bot has in a channel", guild_ids=[878364507385233480])
 async def editmessage(ctx, channel: discord.TextChannel, content: discord.Attachment, borders: bool=False, charterimage: bool = False):
