@@ -206,7 +206,10 @@ async def createEvent(ctx: discord.ApplicationContext, eventtype, eventnotes: st
         minute=eventminute or nowTime.minute
     )
 
-    Embed = createEventEmbed(ctx.guild, eventtype, EventTimestamp, ctx.author, eventnotes)
+    try:
+        Embed = createEventEmbed(ctx.guild, eventtype, EventTimestamp, ctx.author, eventnotes)
+    except Exception as e:
+        return await ctx.respond("Error in creating embed: {}".format(e))
 
     await msg.edit("Sending Event Embed Into <#{}>...".format(events.id))
 
