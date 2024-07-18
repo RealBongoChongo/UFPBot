@@ -1291,7 +1291,7 @@ async def on_application_command_error(ctx, error):
             )
         await ctx.respond(embed=em, ephemeral=True)
     else:
-        await ctx.respond("The bot had the following error: \n```\n{}\n```".format(traceback.format_exception(etype=type(error), value=error, tb=error.__traceback__)).join(""), ephemeral=True)
+        await ctx.respond("The bot had the following error: \n```\n{}\n```".format("".join(traceback.format_exception(etype=type(error), value=error, tb=error.__traceback__))), ephemeral=True)
 
 @tasks.loop(minutes=60)
 async def reserveTask():
