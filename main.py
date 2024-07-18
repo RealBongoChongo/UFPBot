@@ -178,10 +178,10 @@ def createEventEmbed(Guild: discord.Guild, EventType: str, EventTimestamp: int, 
         timestamp=datetime.datetime.now(),
         color=Colors[EventType]
     )
-    StarterEmbed.add_field(name="Time", value="**In UTC**: {}\n**Relative**: <t:{}:R>".format(datetime.datetime.utcfromtimestamp(EventTimestamp), EventTimestamp))
-    StarterEmbed.add_field(name="Host", value=str(EventHost))
-    StarterEmbed.add_field(name="Notes", value=EventNotes)
-    StarterEmbed.add_field(name="Event Type", value=EventType)
+    StarterEmbed.add_field(name="Time", value="**In UTC**: {}\n**Relative**: <t:{}:R>".format(datetime.datetime.utcfromtimestamp(EventTimestamp), EventTimestamp), inline=False)
+    StarterEmbed.add_field(name="Host", value=str(EventHost), inline=False)
+    StarterEmbed.add_field(name="Notes", value=EventNotes, inline=False)
+    StarterEmbed.add_field(name="Event Type", value=EventType, inline=False)
     StarterEmbed.set_footer(text="Secure Event- Do not share outside of UFP")
     StarterEmbed.set_author(name="United Federation of Planets", icon_url=Guild.icon.url)
 
