@@ -197,7 +197,7 @@ async def createEvent(ctx: discord.ApplicationContext, eventtype, eventnotes: st
 
     events = await ctx.guild.fetch_channel(1263544155691286639)
 
-    nowTime = datetime.datetime.now()
+    nowTime = datetime.datetime.now() + datetime.timedelta(hours=5)
     EventTimestamp = datetime.datetime(
         year=eventyear or nowTime.year, 
         month=eventmonth or nowTime.month, 
