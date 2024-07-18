@@ -197,22 +197,20 @@ async def createEvent(ctx: discord.ApplicationContext, eventtype, eventnotes: st
 
     events = await ctx.guild.fetch_channel(1263544155691286639)
 
-    nowTime = datetime.datetime.now() + datetime.timedelta(hours=5)
+    nowUTCTime = datetime.datetime.now() + datetime.timedelta(hours=5)
     EventTimestamp = datetime.datetime(
-        year=eventyear or nowTime.year, 
-        month=eventmonth or nowTime.month, 
-        day=eventday or nowTime.day,
-        hour=eventhour or nowTime.hour,
+        year=eventyear or nowUTCTime.year, 
+        month=eventmonth or nowUTCTime.month, 
+        day=eventday or nowUTCTime.day,
+        hour=eventhour or nowUTCTime.hour,
         minute=eventminute or 0
     )
 
-    EventTimestamp += datetime.timedelta(hours=5)
+    EventTimestamp -= datetime.timedelta(hours=5)
 
-    if EventTimestamp < nowTime and EventTimestamp + datetime.timedelta(hours=12) >= nowTime:
-        pass
-
-        # EventTimestamp += datetime.timedelta(hours=12)
-    elif EventTimestamp < nowTime and EventTimestamp + datetime.timedelta(hours=12) < nowTime:
+    if EventTimestamp < nowUTCTime and EventTimestamp + datetime.timedelta(hours=12) >= nowUTCTime:
+        EventTimestamp += datetime.timedelta(hours=12)
+    elif EventTimestamp < nowUTCTime and EventTimestamp + datetime.timedelta(hours=12) < nowUTCTime:
         return await ctx.respond("Event time has already passed")
 
     try:
