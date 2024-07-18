@@ -197,7 +197,7 @@ async def createEvent(ctx: discord.ApplicationContext, eventtype, eventnotes: st
 
     events = await ctx.guild.fetch_channel(1263544155691286639)
 
-    nowUTCTime = datetime.datetime.now() + datetime.timedelta(hours=5)
+    nowUTCTime = datetime.datetime.now()
     EventTimestamp = datetime.datetime(
         year=eventyear or nowUTCTime.year, 
         month=eventmonth or nowUTCTime.month, 
@@ -208,8 +208,10 @@ async def createEvent(ctx: discord.ApplicationContext, eventtype, eventnotes: st
 
     EventTimestamp -= datetime.timedelta(hours=5)
 
-    if EventTimestamp < nowUTCTime:
-        return await ctx.respond("Event time has already passed ({} vs. {})".format(EventTimestamp, nowUTCTime))
+    if EventTimestamp < nowUTCTime and EventTimestamp + datetime.timedelta(hours=12) >= nowUTCTime:
+        EventTimestamp += datetime.timedelta(hours=12)
+    if EventTimestamp < nowUTCTime and EventTimestamp + datetime.timedelta(hours=12) < nowUTCTime:
+        return await ctx.respond("Event time has already passed")
 
     try:
         Embed = createEventEmbed(ctx.guild, eventtype, int(EventTimestamp.timestamp()), ctx.author, eventnotes)
