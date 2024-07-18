@@ -36,7 +36,8 @@ def CreateEvent(EventType: str, EventTimestamp: int, EventHost: discord.Member, 
         "EventNotes": EventNotes,
         "EventType": EventType,
         "EventDuration": EventDuration,
-        "Reminded": False
+        "Reminded": False,
+        "Announced": False
     })
 
     return EventID

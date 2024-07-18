@@ -253,13 +253,23 @@ async def EventReminder():
             eventhandler.DeleteEvent(EventID)
             continue
 
-        EventData["Reminded"] = True
+        if not EventData["Reminded"]:
+            EventData["Reminded"] = True
 
-        EventEmbed = CreateEventEmbed(UFP, EventData["EventType"], EventData["EventTimestamp"], UFP.get_member(EventData["EventHost"]), EventData["EventNotes"], EventData["EventDuration"], EventID)
+            EventEmbed = CreateEventEmbed(UFP, EventData["EventType"], EventData["EventTimestamp"], UFP.get_member(EventData["EventHost"]), EventData["EventNotes"], EventData["EventDuration"], EventID)
 
-        await EventChannel.send("This event starts in 1 hour.", embed=EventEmbed)
+            await EventChannel.send("**This event starts in less than an hour.**", embed=EventEmbed)
 
-        eventhandler.EditEvent(EventID)
+            eventhandler.EditEvent(EventID)
+
+        if EventData["EventTimestamp"] < TimestampNow and not EventData["Announced"]:
+            EventData["Announced"] = True
+
+            EventEmbed = CreateEventEmbed(UFP, EventData["EventType"], EventData["EventTimestamp"], UFP.get_member(EventData["EventHost"]), EventData["EventNotes"], EventData["EventDuration"], EventID)
+
+            await EventChannel.send("**This event has started.**", embed=EventEmbed)
+
+            eventhandler.EditEvent(EventID)
 
 @bot.command(name="editmessage", description="Edit a message that UFP Bot has in a channel", guild_ids=[878364507385233480])
 async def editmessage(ctx, channel: discord.TextChannel, content: discord.Attachment, borders: bool=False, charterimage: bool = False):
