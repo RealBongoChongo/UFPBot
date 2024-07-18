@@ -203,7 +203,7 @@ async def createEvent(ctx: discord.ApplicationContext, eventtype, eventnotes: st
         month=eventmonth or nowTime.month, 
         day=eventday or nowTime.day,
         hour=eventhour or nowTime.hour,
-        minute=eventminute or nowTime.minute
+        minute=eventminute or 0
     )
 
     EventTimestamp += datetime.timedelta(hours=5)
