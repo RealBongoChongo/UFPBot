@@ -180,10 +180,10 @@ def createEventEmbed(Guild: discord.Guild, EventType: str, EventTimestamp: int, 
         timestamp=datetime.datetime.now(),
         color=Colors[EventType]
     )
-    StarterEmbed.add_field(name="Time", value="**In UTC**: {}\n**Relative**: <t:{}:R>".format(datetime.datetime.utcfromtimestamp(EventTimestamp), EventTimestamp), inline=True)
-    StarterEmbed.add_field(name="Host", value=str(EventHost), inline=True)
-    StarterEmbed.add_field(name="Notes", value=EventNotes, inline=True)
-    StarterEmbed.add_field(name="Event Type", value=EventType, inline=True)
+    StarterEmbed.add_field(name="Time", value="**In UTC**: {}\n**Relative**: <t:{}:R>".format(datetime.datetime.utcfromtimestamp(EventTimestamp), EventTimestamp))
+    StarterEmbed.add_field(name="Host", value=str(EventHost))
+    StarterEmbed.add_field(name="Notes", value=EventNotes)
+    StarterEmbed.add_field(name="Event Type", value=EventType)
     StarterEmbed.set_footer(text="Secure Event- Do not share outside of UFP")
 
     return StarterEmbed
