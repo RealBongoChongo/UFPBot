@@ -175,8 +175,6 @@ def createEventEmbed(Guild: discord.Guild, EventType: str, EventTimestamp: int, 
     }
 
     StarterEmbed = discord.Embed(
-        title="United Federation of Planets",
-        image=Guild.icon.url,
         timestamp=datetime.datetime.now(),
         color=Colors[EventType]
     )
@@ -185,6 +183,7 @@ def createEventEmbed(Guild: discord.Guild, EventType: str, EventTimestamp: int, 
     StarterEmbed.add_field(name="Notes", value=EventNotes)
     StarterEmbed.add_field(name="Event Type", value=EventType)
     StarterEmbed.set_footer(text="Secure Event- Do not share outside of UFP")
+    StarterEmbed.set_author(name="United Federation of Planets", icon_url=Guild.icon.url)
 
     return StarterEmbed
 
