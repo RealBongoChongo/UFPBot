@@ -209,7 +209,7 @@ async def createEvent(ctx: discord.ApplicationContext, eventtype, eventnotes: st
     EventTimestamp -= datetime.timedelta(hours=5)
 
     if EventTimestamp < nowUTCTime:
-        return await ctx.respond("Event time has already passed")
+        return await ctx.respond("Event time has already passed ({} vs. {})".format(EventTimestamp, nowUTCTime))
 
     try:
         Embed = createEventEmbed(ctx.guild, eventtype, int(EventTimestamp.timestamp()), ctx.author, eventnotes)
