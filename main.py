@@ -185,12 +185,15 @@ def createEventEmbed(Guild: discord.Guild, EventType: str, EventTimestamp: int, 
     StarterEmbed.add_field(name="Host", value=str(EventHost), inline=True)
     StarterEmbed.add_field(name="Notes", value=EventNotes, inline=True)
     StarterEmbed.add_field(name="Event Type", value=EventType, inline=True)
+
     return StarterEmbed
 
 @bot.command(name="create-event", description="Create a classified event for Commissioned Personnel", guild_ids=[878364507385233480])
 @discord.commands.option("eventtype", choices=["Training", "Patrol", "Workshop", "Testing", "Battle"])
 async def createEvent(ctx: discord.ApplicationContext, eventtype, eventnotes: str, eventday: int=None, eventmonth: int=None, eventyear: int=None, eventhour: int=None, eventminute: int=None):
     await ctx.defer()
+
+    msg = await ctx.respond("Creating Embed...")
 
     events = ctx.guild.get_channel(1263544155691286639)
 
@@ -203,9 +206,11 @@ async def createEvent(ctx: discord.ApplicationContext, eventtype, eventnotes: st
         minute=eventminute or nowTime.minute
     )
 
+    await msg.edit("Sending Event Embed...")
+
     await events.send(embed=createEventEmbed(ctx.guild, eventtype, EventTimestamp, ctx.author, eventnotes))
 
-    await ctx.respond("Successfully scheduled the event.")
+    await msg.edit("Successfully scheduled the event.")
 
 @bot.command(name="editmessage", description="Edit a message that UFP Bot has in a channel", guild_ids=[878364507385233480])
 async def editmessage(ctx, channel: discord.TextChannel, content: discord.Attachment, borders: bool=False, charterimage: bool = False):
