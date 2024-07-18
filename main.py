@@ -1591,6 +1591,7 @@ async def on_ready():
     await channel.send("<@485513915548041239>", embed=embed)
 
     reserveTask.start()
+    EventReminder.start()
     #channel = await guild.fetch_channel(878449851833151488)
     #msg = await channel.fetch_message(1118363480316182669)
     #await msg.edit("Little update on the moderation policy here today:\n\n- Transphobic stuff will lead to an automatic court martial\n\nThis change is because acfc is slowly gaining up on our asses mainly because they are getting curious and seeing the type of shit thats posted here ~~and cuz moderation wont do shit~~\n\n`- Admiral bungochungo`\n||<@&954234917846388826>||")
