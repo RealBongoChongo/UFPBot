@@ -165,6 +165,44 @@ def wrapString(string):
 
     return final
 
+def createEventEmbed(Guild: discord.Guild, EventType: str, EventTimestamp: int, EventHost: discord.Member, EventNotes: str) -> discord.Embed:
+    Colors = {
+        "Training": 0x0452cf,
+        "Testing": 0x04cf66,
+        "Patrol": 0xf5d502,
+        "Workshop": 0x6f02f5,
+        "Battle": 0xf53b02
+    }
+
+    StarterEmbed = discord.Embed(
+        title="United Federation of Planets",
+        image=Guild.icon.url,
+        footer="Secure Event- Do not share outside of UFP",
+        timestamp=datetime.datetime.now().timestamp(),
+        color=Colors[EventType]
+    )
+    StarterEmbed.add_field(name="Time", value="**In UTC**: {}\n**Relative**: <t:{}:R>".format(datetime.datetime.utcfromtimestamp(EventTimestamp), EventTimestamp), inline=True)
+    StarterEmbed.add_field(name="Host", value=str(EventHost), inline=True)
+    StarterEmbed.add_field(name="Notes", value=EventNotes, inline=True)
+    StarterEmbed.add_field(name="Event Type", value=EventType, inline=True)
+    return StarterEmbed
+
+@bot.command(name="create-event", description="Create a classified event for Commissioned Personnel", guild_ids=[878364507385233480])
+@discord.commands.option("eventtype", choices=["Training", "Patrol", "Workshop", "Testing", "Battle"])
+async def createEvent(ctx: discord.ApplicationContext, eventtype, eventnotes: str, eventday: int=None, eventmonth: int=None, eventyear: int=None, eventhour: int=None, eventminute: int=None):
+    events = ctx.guild.get_channel(1263544155691286639)
+
+    nowTime = datetime.datetime.now()
+    EventTimestamp = datetime.datetime(
+        year=eventyear or nowTime.year, 
+        month=eventmonth or nowTime.month, 
+        day=eventday or nowTime.day,
+        hour=eventhour or nowTime.hour,
+        minute=eventminute or nowTime.minute
+    )
+
+    await events.send(embed=createEventEmbed(ctx.guild, eventtype, EventTimestamp, ctx.author, eventnotes))
+
 @bot.command(name="editmessage", description="Edit a message that UFP Bot has in a channel", guild_ids=[878364507385233480])
 async def editmessage(ctx, channel: discord.TextChannel, content: discord.Attachment, borders: bool=False, charterimage: bool = False):
     await ctx.defer()
@@ -1139,12 +1177,18 @@ async def debris(ctx):
     await ctx.respond(message + ("\n\n" if message else "") + "Enemies Encountered: {}\nTotal Earnings:\n\n- Latinum\n  - Bars: {}\n  - Strips: {}\n  - Slips: {}{}".format(enemyCount, earnings["latinum"]["bars"], earnings["latinum"]["strips"], earnings["latinum"]["slips"], "\n\nSuccessfully repaired" if repaired else ""))
 
 @bot.command(description="restart")
-async def restart(ctx):
+async def restart(ctx: discord.ApplicationContext, gitpull: bool = False):
     if not ctx.author.id == 485513915548041239:
         return
-    await ctx.defer()
-    await ctx.respond("Restarting...")
-    requests.get("http://localhost:6060/ubdc")
+    
+    msg = await ctx.respond("Pulling from github repository...")
+    if gitpull:
+        os.system("git pull")
+    await msg.edit_original_response(content="Restarting...")
+    try:
+        requests.get("http://localhost:6060/ubdc")
+    except:
+        pass
     os.execv(sys.executable, ['python'] + sys.argv)
 
 @bot.command(description="Bot Owner use only")
@@ -1189,6 +1233,42 @@ def mentionedTask():
 async def on_member_update(before, after):
     UFP = await bot.fetch_guild(878364507385233480)
     await commandingOfficers.updateCommandingOfficers(bot, UFP)
+
+@bot.event
+async def on_application_command_error(ctx, error):
+    if isinstance(error, commands.CommandOnCooldown):
+        m, s = divmod(error.retry_after, 60)
+        h, m = divmod(m, 60)
+        d, h = divmod(h, 24)
+        w, d = divmod(d, 7)
+        em = discord.Embed(color=0xff0000)
+        if int(d) == 0 and int(h) == 0 and int(m) == 0:
+            em.set_author(
+                name=f' You must wait {int(s)} seconds to use this command'
+            )
+        elif int(d) == 0 and int(h) == 0:
+            em.set_author(
+                name=
+                f' You must wait {int(m)} minutes and {int(s)} seconds to use this command'
+            )
+        elif int(d) == 0 and int(m) != 0:
+            em.set_author(
+                name=
+                f' You must wait {int(h)} hours, {int(m)} minutes and {int(s)} seconds to use this command'
+            )
+        elif int(d) != 0 and int(h) != 0 and int(m) != 0:
+            em.set_author(
+                name=
+                f' You must wait {int(d)} days, {int(h)} hours, {int(m)} minutes and {int(s)} seconds to use this command'
+            )
+        else:
+            em.set_author(
+                name=
+                f' You must wait {int(w)} weeks, {int(d)} days, {int(h)} hours, {int(m)} minutes and {int(s)} seconds to use this command'
+            )
+        await ctx.respond(embed=em, ephemeral=True)
+    else:
+        await ctx.respond("The bot had the following error: \n```\n{}\n```".format(traceback.format_exception(etype=type(error), value=error, tb=error.__traceback__)), ephemeral=True)
 
 @tasks.loop(minutes=60)
 async def reserveTask():
