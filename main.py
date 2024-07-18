@@ -195,7 +195,7 @@ async def createEvent(ctx: discord.ApplicationContext, eventtype, eventnotes: st
 
     msg = await ctx.respond("Creating Embed...")
 
-    events = ctx.guild.get_channel(1263544155691286639)
+    events = await ctx.guild.fetch_channel(1263544155691286639)
 
     nowTime = datetime.datetime.now()
     EventTimestamp = datetime.datetime(
