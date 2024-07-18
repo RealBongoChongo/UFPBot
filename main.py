@@ -18,6 +18,7 @@ from utility import offduty
 from utility import ranks
 from utility import warns
 from utility import commandingOfficers
+from utility import eventhandler
 from textwrap import wrap
 import requests
 import json
@@ -165,7 +166,7 @@ def wrapString(string):
 
     return final
 
-def createEventEmbed(Guild: discord.Guild, EventType: str, EventTimestamp: int, EventHost: discord.Member, EventNotes: str) -> discord.Embed:
+def CreateEventEmbed(Guild: discord.Guild, EventType: str, EventTimestamp: int, EventHost: discord.Member, EventNotes: str, EventDuration: int, EventID: str) -> discord.Embed:
     Colors = {
         "Training": 0x0452cf,
         "Testing": 0x04cf66,
@@ -179,9 +180,11 @@ def createEventEmbed(Guild: discord.Guild, EventType: str, EventTimestamp: int, 
         color=Colors[EventType]
     )
     StarterEmbed.add_field(name="Time", value="**In UTC**: {}\n**Relative**: <t:{}:R>".format(datetime.datetime.utcfromtimestamp(EventTimestamp), EventTimestamp), inline=False)
+    StarterEmbed.add_field(name="Event Duration", value="{} Minutes".format(EventDuration), inline=False)
     StarterEmbed.add_field(name="Host", value=str(EventHost), inline=False)
     StarterEmbed.add_field(name="Notes", value=EventNotes, inline=False)
     StarterEmbed.add_field(name="Event Type", value=EventType, inline=False)
+    StarterEmbed.add_field(name="Event ID", value=EventID, inline=False)
     StarterEmbed.set_footer(text="Secure Event- Do not share outside of UFP")
     StarterEmbed.set_author(name="United Federation of Planets", icon_url=Guild.icon.url)
 
@@ -190,12 +193,11 @@ def createEventEmbed(Guild: discord.Guild, EventType: str, EventTimestamp: int, 
 @bot.command(name="create-event", description="Create a classified event for Commissioned Personnel (TIME MUST BE IN UTC)", guild_ids=[878364507385233480])
 @discord.commands.option("eventtype", choices=["Training", "Patrol", "Workshop", "Testing", "Battle"])
 @discord.commands.option("eventminute", choices=[0, 15, 30, 45])
-async def createEvent(ctx: discord.ApplicationContext, eventtype, eventnotes: str, eventday: int=None, eventmonth: int=None, eventyear: int=None, eventhour: int=None, eventminute: int=None):
+@discord.commands.option("eventduration", choices=[15, 30, 45, 60, 75, 90, 105, 120])
+async def createEvent(ctx: discord.ApplicationContext, eventtype, eventnotes: str, eventduration: int, eventday: int=None, eventmonth: int=None, eventyear: int=None, eventhour: int=None, eventminute: int=None):
     await ctx.defer()
 
-    msg = await ctx.respond("Creating Embed...")
-
-    events = await ctx.guild.fetch_channel(1263544155691286639)
+    msg = await ctx.respond("Scheduling Event...")
 
     nowUTCTime = datetime.datetime.now()
     EventTimestamp = datetime.datetime(
@@ -213,16 +215,51 @@ async def createEvent(ctx: discord.ApplicationContext, eventtype, eventnotes: st
     if EventTimestamp < nowUTCTime and EventTimestamp + datetime.timedelta(hours=12) < nowUTCTime:
         return await ctx.respond("Event time has already passed")
 
-    try:
-        Embed = createEventEmbed(ctx.guild, eventtype, int(EventTimestamp.timestamp()), ctx.author, eventnotes)
-    except Exception as e:
-        return await ctx.respond("Error in creating embed: {}".format(e))
+    EventID = eventhandler.CreateEvent(eventtype, int(EventTimestamp.timestamp()), ctx.author, eventnotes, eventduration)
+
+    await msg.edit("Creating Embed...")
+
+    events = await ctx.guild.fetch_channel(1263544155691286639)
+
+    Embed = CreateEventEmbed(ctx.guild, eventtype, int(EventTimestamp.timestamp()), ctx.author, eventnotes, eventduration, EventID)
 
     await msg.edit("Sending Event Embed Into <#{}>...".format(events.id))
 
-    await events.send(embed=Embed)
+    await events.send("**A new event has been scheduled.**", embed=Embed)
 
     await msg.edit("Successfully scheduled the event.")
+
+@bot.command(name="get-event", description="Retrive an event created", guild_ids=[878364507385233480])
+async def GetEvent(ctx: discord.ApplicationContext, eventid: str):
+    Event = eventhandler.GetEvent(eventid)
+    if not Event:
+        return await ctx.respond("Event not found.")
+
+    await ctx.respond(embed=CreateEventEmbed(ctx.guild, Event["EventType"], Event["EventTimestamp"], ctx.guild.get_member(Event["EventHost"]), Event["EventNotes"], Event["EventDuration"], eventid))
+
+@tasks.loop(minutes=1)
+async def EventReminder():
+    UFP = bot.get_guild(878364507385233480)
+    EventChannel = UFP.get_channel(1263544155691286639)
+    
+    Events = eventhandler.ReadJson()
+    TimestampNow = datetime.datetime.now().timestamp()
+
+    for EventID, EventData in Events.items():
+        if EventData["EventTimestamp"] - 3600 > TimestampNow:
+            continue
+
+        if EventData["EventTimestamp"] + (EventData["EventDuration"] * 60) <= TimestampNow:
+            eventhandler.DeleteEvent(EventID)
+            continue
+
+        EventData["Reminded"] = True
+
+        EventEmbed = CreateEventEmbed(UFP, EventData["EventType"], EventData["EventTimestamp"], UFP.get_member(EventData["EventHost"]), EventData["EventNotes"], EventData["EventDuration"], EventIDw)
+
+        await EventChannel.send("This event starts in 1 hour.", embed=EventEmbed)
+
+        eventhandler.EditEvent(EventID)
 
 @bot.command(name="editmessage", description="Edit a message that UFP Bot has in a channel", guild_ids=[878364507385233480])
 async def editmessage(ctx, channel: discord.TextChannel, content: discord.Attachment, borders: bool=False, charterimage: bool = False):
