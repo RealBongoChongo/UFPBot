@@ -3,15 +3,16 @@ import json, random, discord
 characters = "a b c d e f g h i j k l m n o p q r s t u v w x y z 1 2 3 4 5 6 7 8 9 0".split()
 
 def GenerateID() -> str:
-    GeneratedID = ""
+    GeneratedID = []
 
     for i in range(6):
+        IDChunk = ""
         for i in range(6):
-            GeneratedID += random.choice(characters)
+            IDChunk += random.choice(characters)
 
-        GeneratedID += "-"
+        GeneratedID.append(IDChunk)
 
-    return GeneratedID
+    return "-".join(GeneratedID)
 
 def ReadJson() -> dict:
     return json.load(open("json/events.json", "r"))
