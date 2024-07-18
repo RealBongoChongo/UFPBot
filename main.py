@@ -211,7 +211,7 @@ async def createEvent(ctx: discord.ApplicationContext, eventtype, eventnotes: st
     if EventTimestamp < nowTime and EventTimestamp + datetime.timedelta(hours=12) >= nowTime:
         pass
 
-        EventTimestamp += datetime.timedelta(hours=12)
+        # EventTimestamp += datetime.timedelta(hours=12)
     elif EventTimestamp < nowTime and EventTimestamp + datetime.timedelta(hours=12) < nowTime:
         return await ctx.respond("Event time has already passed")
 
