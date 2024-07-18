@@ -206,7 +206,7 @@ async def createEvent(ctx: discord.ApplicationContext, eventtype, eventnotes: st
         minute=eventminute or nowTime.minute
     )
 
-    await msg.edit("Sending Event Embed...")
+    await msg.edit("Sending Event Embed Into <#{}>...".format(events.id))
 
     await events.send(embed=createEventEmbed(ctx.guild, eventtype, EventTimestamp, ctx.author, eventnotes))
 
