@@ -241,7 +241,7 @@ async def GetEvent(ctx: discord.ApplicationContext, eventid: str):
 async def EventReminder():
     UFP = bot.get_guild(878364507385233480)
     EventChannel = UFP.get_channel(1263544155691286639)
-    
+
     Events = eventhandler.ReadJson()
     TimestampNow = datetime.datetime.now().timestamp()
 
@@ -255,7 +255,7 @@ async def EventReminder():
 
         EventData["Reminded"] = True
 
-        EventEmbed = CreateEventEmbed(UFP, EventData["EventType"], EventData["EventTimestamp"], UFP.get_member(EventData["EventHost"]), EventData["EventNotes"], EventData["EventDuration"], EventIDw)
+        EventEmbed = CreateEventEmbed(UFP, EventData["EventType"], EventData["EventTimestamp"], UFP.get_member(EventData["EventHost"]), EventData["EventNotes"], EventData["EventDuration"], EventID)
 
         await EventChannel.send("This event starts in 1 hour.", embed=EventEmbed)
 
