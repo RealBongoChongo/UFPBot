@@ -40,14 +40,17 @@ def SmartlogToString(Smartlog: dict) -> str:
     SmartlogList = []
 
     for Point, Users in Smartlog.items():
-        SmartlogList.append([int(Point), Users])
+        for UserIndex in range(len(Users)):
+            Users[UserIndex] = "<@{}>".format(str(Users[UserIndex]))
+
+        SmartlogList.append([int(Point), ])
 
     SmartlogList = sorted(SmartlogList, key=lambda x: x[0])
 
     Log = []
 
     for LogLine in SmartlogList:
-        Log.append("{} - {}".format(LogLine[0], ", ".join(LogLine[1])))
+        Log.append("{} - {}".format(str(LogLine[0]), ", ".join(LogLine[1])))
 
     return "\n".join(Log)
 
