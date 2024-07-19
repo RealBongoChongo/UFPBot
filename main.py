@@ -300,6 +300,8 @@ async def CreateSmartlog(ctx: discord.ApplicationContext):
 
     SmartlogAdd = smartlog.CreateSmartlogMessage(bot, ctx)
 
+    await ctx.respond(SmartlogAdd)
+
     Smartlog = smartlog.MergeSmartlog(Smartlog, SmartlogAdd)
 
     SmartlogEmbed.description = smartlog.SmartlogToString(Smartlog)
