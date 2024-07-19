@@ -154,7 +154,10 @@ class Smartlog:
         Message = await Channel.fetch_message(self.Message)
         await Message.delete()
 
-        WriteJson(ReadJson().pop(self.Key))
+        Data = ReadJson()
+        Data.pop(self.Key)
+
+        WriteJson(Data)
 
     async def Approve(self, Channel: discord.TextChannel) -> None:
         Message = await Channel.fetch_message(self.Message)
@@ -166,7 +169,10 @@ class Smartlog:
             for User in Users:
                 points.AddPoints(User, Point)
 
-        WriteJson(ReadJson().pop(self.Key))
+        Data = ReadJson()
+        Data.pop(self.Key)
+
+        WriteJson(Data)
 
     async def CreateSmartlogDialog(self, bot: discord.Bot, ctx: discord.ApplicationContext) -> bool:
         SmartlogMessage = await bot.wait_for("message", check=lambda message: message.author == ctx.author and message.channel == ctx.channel and message.guild == ctx.guild)
