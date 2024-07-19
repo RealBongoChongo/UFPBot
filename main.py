@@ -306,6 +306,51 @@ async def MyPoints(ctx: discord.ApplicationContext):
 
     await ctx.respond(embed=Embed)
 
+@bot.command(name="my-logs", description="View the IDs of the logs that you've sent in", guild_ids=[878364507385233480])
+async def ViewMyLogs(ctx: discord.ApplicationContext):
+    Logs = smartlog.ReadJson()
+    OwnedLogs = []
+
+    Pending = 0
+
+    for LogID, Log in deepcopy(Logs).items():
+        if Log["Logger"] == ctx.author.id:
+            OwnedLogs.append(LogID)
+
+    Embed = discord.Embed(
+        description="{}".format("\n".join(OwnedLogs)),
+        color=0x0452cf
+    )
+    Embed.set_author(name="United Federation of Planets", icon_url=ctx.guild.icon.url)
+
+    await ctx.respond(embed=Embed)
+
+@bot.command(name="all-logs", description="View the IDs of the logs that are pending", guild_ids=[878364507385233480])
+async def ViewPendingLogs(ctx: discord.ApplicationContext):
+    Logs = smartlog.ReadJson()
+    FormattedLogs = []
+
+    for LogID, Log in deepcopy(Logs).items():
+        FormattedLogs.append("{} - <@{}>".format(LogID, Log["Logger"]))
+
+    Embed = discord.Embed(
+        description="{}".format("\n".join(FormattedLogs)),
+        color=0x0452cf
+    )
+    Embed.set_author(name="United Federation of Planets", icon_url=ctx.guild.icon.url)
+
+    await ctx.respond(embed=Embed)
+
+@bot.command(name="view-log", description="View a smartlog", guild_ids=[878364507385233480])
+async def ViewLog(ctx: discord.ApplicationContext, logid: str):
+    Smartlog = smartlog.Smartlog.FromID(logid)
+    if not Smartlog:
+        return await ctx.respond("Log does not exist")
+
+    Smartlog.UpdateEmbed()
+
+    await ctx.respond(embed=Smartlog.Embed)
+
 @bot.command(name="create-smartlog", description="Create a smartlog", guild_ids=[878364507385233480])
 async def CreateSmartlog(ctx: discord.ApplicationContext):
     await ctx.defer()
