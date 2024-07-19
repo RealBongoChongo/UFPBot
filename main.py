@@ -19,6 +19,7 @@ from utility import ranks
 from utility import warns
 from utility import commandingOfficers
 from utility import eventhandler
+from utility import smartlog
 from textwrap import wrap
 import requests
 import json
@@ -286,11 +287,24 @@ async def CreateSmartlog(ctx: discord.ApplicationContext):
     await ctx.respond("Creating smartlog...")
 
     SmartlogEmbed = discord.Embed(
-        description="Smartlog not created yet"
+        description="Smartlog not created yet",
+        color=0x0452cf
     )
     SmartlogEmbed.set_author(name="United Federation of Planets Smartlog", icon_url=ctx.guild.icon.url)
 
-    await ctx.respond("Create your smartlog in the following format:\n\n1 - gogomangothacked2341, amazangprizanor\n2 - sniperrifle57\n\n-1 - banmched\n-2 - fatass", embed=SmartlogEmbed)
+    Message = await ctx.respond("Create your smartlog in the following format by mentioning discord users or using their discord ID:\n\n1 - gogomangothacked2341, amazangprizanor\n2 - sniperrifle57\n\n-1 - banmched\n-2 - fatass\n\nWARNING: Use spaces between the `-` and use spaces after commas", embed=SmartlogEmbed)
+
+    SmartlogConfirm = False
+
+    Smartlog = {}
+
+    SmartlogAdd = smartlog.CreateSmartlogMessage(bot, ctx)
+
+    Smartlog = smartlog.MergeSmartlog(Smartlog, SmartlogAdd)
+
+    SmartlogEmbed.description = smartlog.SmartlogToString(Smartlog)
+
+    await Message.edit("Create your smartlog in the following format by mentioning discord users or using their discord ID:\n\n1 - gogomangothacked2341, amazangprizanor\n2 - sniperrifle57\n\n-1 - banmched\n-2 - fatass\n\nWARNING: Use spaces between the `-` and use spaces after commas", embed=SmartlogEmbed)
 
 @bot.command(name="editmessage", description="Edit a message that UFP Bot has in a channel", guild_ids=[878364507385233480])
 async def editmessage(ctx, channel: discord.TextChannel, content: discord.Attachment, borders: bool=False, charterimage: bool = False):
