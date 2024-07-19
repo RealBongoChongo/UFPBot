@@ -1,4 +1,18 @@
-import discord
+import discord, random, typing
+
+characters = "a b c d e f g h i j k l m n o p q r s t u v w x y z 1 2 3 4 5 6 7 8 9 0".split()
+
+def GenerateID() -> str:
+    GeneratedID = []
+
+    for i in range(6):
+        IDChunk = ""
+        for i in range(6):
+            IDChunk += random.choice(characters)
+
+        GeneratedID.append(IDChunk)
+
+    return "-".join(GeneratedID)
 
 def MergeSmartlog(Smartlog1: dict, Smartlog2: dict) -> dict:
     for Point, Users in Smartlog2.items():
@@ -45,7 +59,7 @@ def SmartlogToString(Smartlog: dict) -> str:
 
         SmartlogList.append([int(Point), Users])
 
-    SmartlogList = sorted(SmartlogList, key=lambda x: x[0])
+    SmartlogList = sorted(SmartlogList, key=lambda x: x[0], reverse=True)
 
     Log = []
 
@@ -54,15 +68,18 @@ def SmartlogToString(Smartlog: dict) -> str:
 
     return "\n".join(Log)
 
-async def CreateSmartlogMessage(bot: discord.Bot, ctx: discord.ApplicationContext) -> dict:
+async def CreateSmartlogMessage(bot: discord.Bot, ctx: discord.ApplicationContext, OldSmartlog: dict) -> typing.Union[dict, bool | None]:
     SmartlogSuccess = False
     ParsedSmartlog = None
 
     while not SmartlogSuccess:
         SmartlogMessage = await bot.wait_for("message", check=lambda message: message.author == ctx.author and message.channel == ctx.channel and message.guild == ctx.guild)
 
+        if SmartlogMessage.content.lower() == "done":
+            return OldSmartlog, True
+
         ParsedSmartlog = ParseSmartlogMessage(SmartlogMessage.content)
 
         SmartlogSuccess = bool(ParsedSmartlog)
 
-    return ParsedSmartlog
+    return ParsedSmartlog, False

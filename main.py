@@ -284,7 +284,7 @@ async def EventReminder():
 
 @bot.command(name="create-smartlog", description="Create a smartlog", guild_ids=[878364507385233480])
 async def CreateSmartlog(ctx: discord.ApplicationContext):
-    await ctx.respond("Creating smartlog...")
+    await ctx.defer()
 
     SmartlogEmbed = discord.Embed(
         description="Smartlog not created yet",
@@ -294,17 +294,22 @@ async def CreateSmartlog(ctx: discord.ApplicationContext):
 
     Message = await ctx.respond("Create your smartlog in the following format by mentioning discord users or using their discord ID:\n\n1 - gogomangothacked2341, amazangprizanor\n2 - sniperrifle57\n\n-1 - banmched\n-2 - fatass\n\nWARNING: Use spaces between the `-` and use spaces after commas", embed=SmartlogEmbed)
 
-    SmartlogConfirm = False
+    Smartlog, SmartlogConfirm = {}, False
 
-    Smartlog = {}
+    while not SmartlogConfirm:
+        Smartlog, SmartlogConfirm = await smartlog.CreateSmartlogMessage(bot, ctx, Smartlog)
 
-    SmartlogAdd = await smartlog.CreateSmartlogMessage(bot, ctx)
+        SmartlogEmbed.description = smartlog.SmartlogToString(Smartlog)
 
-    Smartlog = smartlog.MergeSmartlog(Smartlog, SmartlogAdd)
+        await Message.edit("Create your smartlog in the following format by mentioning discord users or using their discord ID then say \"Done\" when you are done:\n\n1 - gogomangothacked2341, amazangprizanor\n2 - sniperrifle57\n\n-1 - banmched\n-2 - fatass\n\nWARNING: Use spaces between the `-` and use spaces after commas", embed=SmartlogEmbed)
 
-    SmartlogEmbed.description = smartlog.SmartlogToString(Smartlog)
+    await Message.delete()
 
-    await Message.edit("Create your smartlog in the following format by mentioning discord users or using their discord ID:\n\n1 - gogomangothacked2341, amazangprizanor\n2 - sniperrifle57\n\n-1 - banmched\n-2 - fatass\n\nWARNING: Use spaces between the `-` and use spaces after commas", embed=SmartlogEmbed)
+    SmartlogChannel = ctx.guild.get_channel(1263658686019141682)
+
+    await SmartlogChannel.send("**Smartlog from {}**".format(ctx.author), embed=SmartlogEmbed)
+
+    await ctx.respond("Smartlog awaiting processing...")
 
 @bot.command(name="editmessage", description="Edit a message that UFP Bot has in a channel", guild_ids=[878364507385233480])
 async def editmessage(ctx, channel: discord.TextChannel, content: discord.Attachment, borders: bool=False, charterimage: bool = False):
