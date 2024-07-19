@@ -42,7 +42,11 @@ def SmartlogToString(Smartlog: dict) -> str:
     for Point, Users in Smartlog.items():
         SmartlogList.append([int(Point), Users])
 
-    return "\n".join(sorted(SmartlogList, key=lambda x: x[0]))
+    print(SmartlogList)
+
+    SmartlogList = sorted(SmartlogList, key=lambda x: x[0])
+
+    return "\n".join()
 
 async def CreateSmartlogMessage(bot: discord.Bot, ctx: discord.ApplicationContext) -> dict:
     SmartlogSuccess = False
