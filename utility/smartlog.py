@@ -68,7 +68,7 @@ def SmartlogToString(Smartlog: dict) -> str:
 
     return "\n".join(Log)
 
-async def CreateSmartlogMessage(bot: discord.Bot, ctx: discord.ApplicationContext, OldSmartlog: dict) -> typing.Union[dict, bool | None]:
+async def CreateSmartlogMessage(bot: discord.Bot, ctx: discord.ApplicationContext, OldSmartlog: dict) -> typing.Union[dict, bool]:
     SmartlogSuccess = False
     ParsedSmartlog = None
 
