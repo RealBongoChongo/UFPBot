@@ -20,6 +20,7 @@ from utility import warns
 from utility import commandingOfficers
 from utility import eventhandler
 from utility import smartlog
+from copy import deepcopy
 from textwrap import wrap
 import requests
 import json
@@ -299,17 +300,24 @@ async def CreateSmartlog(ctx: discord.ApplicationContext):
     while not SmartlogConfirm:
         Smartlog, SmartlogConfirm = await smartlog.CreateSmartlogMessage(bot, ctx, Smartlog)
 
-        SmartlogEmbed.description = smartlog.SmartlogToString(Smartlog)
+        SmartlogEmbed.clear_fields()
+
+        for Point, Users in deepcopy(Smartlog).items():
+            SmartlogEmbed.add_field("{} Point{}".format(Point, "" if Point == 1 or Point == -1 else "s"), value=", ".join(["<@{}>".format(User) for User in Users]))
 
         await Message.edit("Create your smartlog in the following format by mentioning discord users or using their discord ID then say \"Done\" when you are done:\n\n1 - gogomangothacked2341, amazangprizanor\n2 - sniperrifle57\n\n-1 - banmched\n-2 - fatass\n\nWARNING: Use spaces between the `-` and use spaces after commas", embed=SmartlogEmbed)
 
     await Message.delete()
 
+    SmartlogID = smartlog.LogSmartlog(Smartlog)
+    SmartlogEmbed.set_footer("Smartlog ID: {}".format(SmartlogID))
+    SmartlogEmbed.timestamp = datetime.datetime.now()
+
     SmartlogChannel = ctx.guild.get_channel(1263658686019141682)
 
     await SmartlogChannel.send("**Smartlog from {}**".format(ctx.author), embed=SmartlogEmbed)
 
-    await ctx.respond("Smartlog awaiting processing...")
+    await ctx.respond("Smartlog ID {} awaiting processing...".format(SmartlogID))
 
 @bot.command(name="editmessage", description="Edit a message that UFP Bot has in a channel", guild_ids=[878364507385233480])
 async def editmessage(ctx, channel: discord.TextChannel, content: discord.Attachment, borders: bool=False, charterimage: bool = False):

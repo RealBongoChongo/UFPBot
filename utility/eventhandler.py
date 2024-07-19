@@ -45,7 +45,10 @@ def CreateEvent(EventType: str, EventTimestamp: int, EventHost: discord.Member, 
 def EditEvent(EventID, NewData) -> None:
     WriteKey(EventID, NewData)
 
-def GetEvent(EventID) -> dict:
+def GetEvent(EventID) -> dict | None:
+    if not EventID in ReadJson():
+        return None
+
     return ReadJson()[EventID]
 
 def DeleteEvent(EventID) -> None:

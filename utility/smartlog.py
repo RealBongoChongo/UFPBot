@@ -1,4 +1,4 @@
-import discord, random, typing
+import discord, random, typing, json
 from copy import deepcopy
 
 characters = "a b c d e f g h i j k l m n o p q r s t u v w x y z 1 2 3 4 5 6 7 8 9 0".split()
@@ -14,6 +14,32 @@ def GenerateID() -> str:
         GeneratedID.append(IDChunk)
 
     return "-".join(GeneratedID)
+
+def ReadJson() -> dict:
+    return json.load(open("json/smartlogs.json", "r"))
+
+def WriteJson(Data) -> None:
+    json.dump(Data, open("json/smartlogs.json", "w"), indent=4)
+
+def WriteKey(Key: str, Value) -> None:
+    Data = ReadJson()
+
+    Data[Key] = Value
+
+    WriteJson(Data)
+
+def LogSmartlog(Smartlog: dict) -> str:
+    Key = GenerateID()
+
+    WriteKey(Key, Smartlog)
+
+    return Key
+
+def GetSmartlog(SmartlogID: str) -> dict | None:
+    if not SmartlogID in ReadJson():
+        return None
+    
+    return ReadJson()[SmartlogID]
 
 def MergeSmartlog(Smartlog1: dict, Smartlog2: dict) -> dict:
     for Point, Users in Smartlog2.items():
