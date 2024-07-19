@@ -53,7 +53,7 @@ def ParseSmartlogMessage(Message: str) -> dict:
 def SmartlogToString(Smartlog: dict) -> str:
     SmartlogList = []
 
-    for Point, Users in Smartlog.items():
+    for Point, Users in Smartlog.copy().items():
         for UserIndex in range(len(Users)):
             Users[UserIndex] = "<@{}>".format(str(Users[UserIndex]))
 

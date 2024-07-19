@@ -303,8 +303,6 @@ async def CreateSmartlog(ctx: discord.ApplicationContext):
 
         await Message.edit("Create your smartlog in the following format by mentioning discord users or using their discord ID then say \"Done\" when you are done:\n\n1 - gogomangothacked2341, amazangprizanor\n2 - sniperrifle57\n\n-1 - banmched\n-2 - fatass\n\nWARNING: Use spaces between the `-` and use spaces after commas", embed=SmartlogEmbed)
 
-        print(Smartlog)
-
     await Message.delete()
 
     SmartlogChannel = ctx.guild.get_channel(1263658686019141682)
