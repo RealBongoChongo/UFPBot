@@ -35,7 +35,7 @@ def LogSmartlog(Smartlog: dict) -> str:
 
     return Key
 
-def GetSmartlog(SmartlogID: str) -> dict | None:
+def GetSmartlog(SmartlogID: str) -> dict:
     if not SmartlogID in ReadJson():
         return None
     
