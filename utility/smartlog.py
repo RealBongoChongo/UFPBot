@@ -43,7 +43,7 @@ def SmartlogToString(Smartlog: dict) -> str:
         for UserIndex in range(len(Users)):
             Users[UserIndex] = "<@{}>".format(str(Users[UserIndex]))
 
-        SmartlogList.append([int(Point), ])
+        SmartlogList.append([int(Point), Users])
 
     SmartlogList = sorted(SmartlogList, key=lambda x: x[0])
 
