@@ -1819,6 +1819,9 @@ async def on_interaction(Interaction: discord.Interaction):
             if not Smartlog:
                 return await Interaction.respond(content="Smartlog no longer exists.", ephemeral=True)
 
+            Message = await Interaction.original_message()
+            Smartlog.Embed = Message.embeds[0]
+
             if Action == "Approve":
                 pass
             elif Action == "Edit":

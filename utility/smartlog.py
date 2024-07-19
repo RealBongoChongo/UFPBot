@@ -96,7 +96,7 @@ class Smartlog:
 
         return self
 
-    def ProcessUsers(Selector: str) -> list[int]:
+    def ProcessUsers(self, Selector: str) -> list[int]:
         Users = Selector.split(", ")
         FinalUsers = []
 
