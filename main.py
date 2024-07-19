@@ -20,6 +20,7 @@ from utility import warns
 from utility import commandingOfficers
 from utility import eventhandler
 from utility import smartlog
+from utility import points
 from copy import deepcopy
 from textwrap import wrap
 import requests
@@ -282,6 +283,28 @@ async def EventReminder():
             await EventChannel.send("<@&954234917846388826> **This event has started.**", embed=EventEmbed)
 
             eventhandler.EditEvent(EventID, EventData)
+
+@bot.command(name="my-points", description="Find your points", guild_ids=[878364507385233480])
+async def MyPoints(ctx: discord.ApplicationContext):
+    Logs = smartlog.ReadJson()
+
+    Pending = 0
+
+    for LogID, Log in deepcopy(Logs).items():
+        for Point, Users in Log["Log"]:
+            Point = int(Point)
+
+            for User in Users:
+                if User == ctx.author.id:
+                    Pending += Point
+
+    Embed = discord.Embed(
+        color=0x0452cf
+    )
+    Embed.set_author(name="United Federation of Planets", icon_url=ctx.guild.icon.url)
+    Embed.add_field(name="Points", value="{} Points{}".format(points.GetUser(ctx.author.id)["Points"], f" ({Pending} Pending)" if Pending else ""))
+
+    await ctx.respond(embed=Embed)
 
 @bot.command(name="create-smartlog", description="Create a smartlog", guild_ids=[878364507385233480])
 async def CreateSmartlog(ctx: discord.ApplicationContext):
@@ -1820,7 +1843,7 @@ async def on_interaction(Interaction: discord.Interaction):
                 return await Interaction.respond(content="Smartlog no longer exists.", ephemeral=True)
 
             if Action == "Approve":
-                pass
+                await Smartlog.Approve(Interaction.channel)
             elif Action == "Edit":
                 await Interaction.respond(content="Begin stating your edits.\n\nCommands:\n    removeuser: <userid or mention>\n    removepoint: <point amount>\n    addmany: <point amount> - <users>", ephemeral=True)
                 
@@ -1833,9 +1856,10 @@ async def on_interaction(Interaction: discord.Interaction):
 
                     await Interaction.edit_original_message(embed=Smartlog.Embed)
 
+                Smartlog.Log()
                 await Interaction.respond(content="Successfully edited.", ephemeral=True)
             elif Action == "Void":
-                pass
+                await Smartlog.Delete(Interaction.channel)
         except Exception as e:
             error = discord.utils.get(Interaction.guild.channels, id=1051489091339956235)
             await error.send(traceback.format_exc())

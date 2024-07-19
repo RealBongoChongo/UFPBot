@@ -1,5 +1,6 @@
 import discord, random, typing, json, datetime
 from copy import deepcopy
+from . import points
 
 characters = "a b c d e f g h i j k l m n o p q r s t u v w x y z 1 2 3 4 5 6 7 8 9 0".split()
 
@@ -56,19 +57,16 @@ class Smartlog:
         )
         self.Embed.set_author(name="United Federation of Planets Smartlog", icon_url=ctx.guild.icon.url)
 
-    def Log(self, Logger: int, MessageID: int) -> None:
-        if self.Key:
-            return self.Key
-
-        Key = GenerateID()
+    def Log(self, Logger: int = None, MessageID: int = None) -> None:
+        Key = self.Key or GenerateID()
 
         self.Key = Key
-        self.Logger = Logger
+        self.Logger = self.Logger or Logger
 
-        WriteKey(Key, {
+        WriteKey(self.Key, {
             "Log": self.Smartlog,
-            "Logger": Logger,
-            "Message": MessageID
+            "Logger": self.Logger,
+            "Message": self.Message or MessageID
         })
 
         self.Embed.set_footer(text="Smartlog ID: {}".format(self.Key))
@@ -151,6 +149,24 @@ class Smartlog:
         View.add_item(SmartlogButton("Void", self.Key))
 
         return View
+
+    async def Delete(self, Channel: discord.TextChannel) -> None:
+        Message = await Channel.fetch_message(self.Message)
+        await Message.delete()
+
+        WriteJson(ReadJson().pop(self.Key))
+
+    async def Approve(self, Channel: discord.TextChannel) -> None:
+        Message = await Channel.fetch_message(self.Message)
+        await Message.delete()
+
+        for Point, Users in deepcopy(self.Smartlog).items():
+            Point = int(Point)
+
+            for User in Users:
+                points.AddPoints(User, Point)
+
+        WriteJson(ReadJson().pop(self.Key))
 
     async def CreateSmartlogDialog(self, bot: discord.Bot, ctx: discord.ApplicationContext) -> bool:
         SmartlogMessage = await bot.wait_for("message", check=lambda message: message.author == ctx.author and message.channel == ctx.channel and message.guild == ctx.guild)
