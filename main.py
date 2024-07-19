@@ -304,10 +304,10 @@ async def CreateSmartlog(ctx: discord.ApplicationContext):
 
     SmartlogChannel = ctx.guild.get_channel(1263658686019141682)
 
-    msg = await SmartlogChannel.send("**Smartlog from {}**".format(ctx.author), view=SmartlogClass.ToView())
+    msg = await SmartlogChannel.send("**Smartlog from {}**".format(ctx.author))
 
     SmartlogClass.Log(ctx.author.id, msg.id)
-    await msg.edit(embed=SmartlogClass.Embed)
+    await msg.edit(embed=SmartlogClass.Embed, view=SmartlogClass.ToView())
 
     await ctx.respond("Smartlog awaiting processing...".format(SmartlogClass.Key))
 
