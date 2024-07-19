@@ -1815,7 +1815,7 @@ async def on_interaction(Interaction: discord.Interaction):
             Action = ParsedID[0]
             LogID = ParsedID[1]
             
-            Smartlog = smartlog.Smartlog.FromID(LogID)
+            Smartlog = smartlog.Smartlog.FromID(Interaction, LogID)
             if not Smartlog:
                 return await Interaction.respond(content="Smartlog no longer exists.", ephemeral=True)
 

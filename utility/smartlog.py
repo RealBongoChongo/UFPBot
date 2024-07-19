@@ -81,7 +81,7 @@ class Smartlog:
             self.Embed.add_field(name="{} Point{}".format(Point, "" if Point == 1 or Point == -1 else "s"), value=", ".join(["<@{}>".format(User) for User in Users]), inline=False)
 
     @classmethod
-    def FromID(cls, SmartlogID: str):
+    def FromID(cls, ctx: discord.Interaction, SmartlogID: str):
         self = cls.__new__(cls)
 
         Smartlog = GetSmartlog(SmartlogID)
