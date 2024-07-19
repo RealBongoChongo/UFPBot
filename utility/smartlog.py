@@ -1,4 +1,4 @@
-import discord, random, typing, json
+import discord, random, typing, json, datetime
 from copy import deepcopy
 
 characters = "a b c d e f g h i j k l m n o p q r s t u v w x y z 1 2 3 4 5 6 7 8 9 0".split()
@@ -28,86 +28,164 @@ def WriteKey(Key: str, Value) -> None:
 
     WriteJson(Data)
 
-def LogSmartlog(Smartlog: dict) -> str:
-    Key = GenerateID()
-
-    WriteKey(Key, Smartlog)
-
-    return Key
-
 def GetSmartlog(SmartlogID: str) -> dict:
     if not SmartlogID in ReadJson():
         return None
     
     return ReadJson()[SmartlogID]
 
-def MergeSmartlog(Smartlog1: dict, Smartlog2: dict) -> dict:
-    for Point, Users in Smartlog2.items():
-        if not str(Point) in Smartlog1:
-            Smartlog1[str(Point)] = []
+class SmartlogButton(discord.ui.Button):
+    def __init__(self, Label: str, SmartlogID: str):
+        Colors = {
+            "Approve": discord.ButtonStyle.success,
+            "Edit": discord.ButtonStyle.blurple,
+            "Void": discord.ButtonStyle.danger,
+        }
 
-        for User in Users:
-            Smartlog1[str(Point)].append(User)
+        super().__init__(label=Label, custom_id="{} | {}".format(Label, SmartlogID), style=Colors[Label])
 
-    return Smartlog1
+class Smartlog:
+    def __init__(self, ctx: discord.ApplicationContext):
+        self.Smartlog: dict = {}
+        self.Logger: int = None
+        self.Key: str = None
+        self.Message: int = None
 
-def ParseSmartlogMessage(Message: str) -> dict:
-    MessageLines = Message.split("\n")
-    Smartlog = {}
+        self.Embed: discord.Embed = discord.Embed(
+            color=0x0452cf
+        )
+        self.Embed.set_author(name="United Federation of Planets Smartlog", icon_url=ctx.guild.icon.url)
 
-    for Line in MessageLines:
-        ParsedLine = Line.split(" - ")
-        if len(ParsedLine) != 2:
-            continue
+    def Log(self, Logger: int, MessageID: int) -> None:
+        if self.Key:
+            return self.Key
 
-        try:
-            Point = int(ParsedLine[0])
-        except:
-            continue
+        Key = GenerateID()
 
-        Users = ParsedLine[1].split(", ")
+        self.Key = Key
+        self.Logger = Logger
 
-        if not str(Point) in Smartlog:
-            Smartlog[str(Point)] = []
+        WriteKey(Key, {
+            "Log": self.Smartlog,
+            "Logger": Logger,
+            "Message": MessageID
+        })
+
+        self.Embed.set_footer(text="Smartlog ID: {}".format(self.Key))
+        self.Embed.timestamp = datetime.datetime.now()
+
+    def UpdateEmbed(self):
+        self.Embed.clear_fields()
+
+        for Point, Users in deepcopy(self.Smartlog).items():
+            self.Embed.add_field(name="{} Point{}".format(Point, "" if Point == 1 or Point == -1 else "s"), value=", ".join(["<@{}>".format(User) for User in Users]), inline=False)
+
+    @classmethod
+    def FromID(cls, SmartlogID: str):
+        self = cls.__new__(cls)
+
+        Smartlog = GetSmartlog(SmartlogID)
+
+        if not Smartlog:
+            return
+
+        self.Smartlog = Smartlog["Log"]
+        self.Logger = Smartlog["Logger"]
+        self.Message = Smartlog["Message"]
+        self.Key = SmartlogID
+
+        return self
+
+    def ProcessUsers(Selector: str) -> list[int]:
+        Users = Selector.split(", ")
+        FinalUsers = []
 
         for User in Users:
             UserID = User.replace("<@", "").replace(">", "")
 
-            Smartlog[str(Point)].append(int(UserID))
+            try:
+                UserID = int(UserID)
+            except:
+                continue
 
-    return Smartlog
+            FinalUsers.append(UserID)
 
-def SmartlogToString(Smartlog: dict) -> str:
-    Smartlog = deepcopy(Smartlog)
-    SmartlogList = []
+        return FinalUsers
+    
+    def SmartlogFromMessage(self, Message: str) -> None:
+        MessageLines = Message.split("\n")
 
-    for Point, Users in Smartlog.items():
-        for UserIndex in range(len(Users)):
-            Users[UserIndex] = "<@{}>".format(str(Users[UserIndex]))
+        for Line in MessageLines:
+            ParsedLine = Line.split(" - ")
+            if len(ParsedLine) != 2:
+                continue
 
-        SmartlogList.append([int(Point), Users])
+            try:
+                Point = int(ParsedLine[0])
+            except:
+                continue
 
-    SmartlogList = sorted(SmartlogList, key=lambda x: x[0], reverse=True)
+            Users = ParsedLine[1].split(", ")
 
-    Log = []
+            if not str(Point) in self.Smartlog:
+                self.Smartlog[str(Point)] = []
 
-    for LogLine in SmartlogList:
-        Log.append("{} - {}".format(str(LogLine[0]), ", ".join(LogLine[1])))
+            for User in Users:
+                UserID = User.replace("<@", "").replace(">", "")
 
-    return "\n".join(Log)
+                self.Smartlog[str(Point)].append(int(UserID))
 
-async def CreateSmartlogMessage(bot: discord.Bot, ctx: discord.ApplicationContext, OldSmartlog: dict) -> typing.Union[dict, bool]:
-    SmartlogSuccess = False
-    ParsedSmartlog = None
+    def ToView(self) -> discord.ui.View:
+        View = discord.ui.View()
 
-    while not SmartlogSuccess:
+        View.add_item(SmartlogButton("Approve", self.Key))
+        View.add_item(SmartlogButton("Edit", self.Key))
+        View.add_item(SmartlogButton("Void", self.Key))
+
+        return View
+
+    async def CreateSmartlogDialog(self, bot: discord.Bot, ctx: discord.ApplicationContext) -> bool:
         SmartlogMessage = await bot.wait_for("message", check=lambda message: message.author == ctx.author and message.channel == ctx.channel and message.guild == ctx.guild)
 
         if SmartlogMessage.content.lower() == "done":
-            return OldSmartlog, True
+            return True
 
-        ParsedSmartlog = ParseSmartlogMessage(SmartlogMessage.content)
+        self.SmartlogFromMessage(SmartlogMessage.content)
 
-        SmartlogSuccess = bool(ParsedSmartlog)
+        return False
+    
+    async def EditSmartlogDialog(self, Bot: discord.Bot, Interaction: discord.Interaction) -> bool:
+        SmartlogMessage = await Bot.wait_for("message", check=lambda message: message.author == Interaction.user and message.channel == Interaction.channel and message.guild == Interaction.guild)
+        await SmartlogMessage.delete()
 
-    return ParsedSmartlog, False
+        if SmartlogMessage.content.lower() == "done":
+            return True
+        
+        Actions = ["removeuser", "removepoint", "addmany"]
+
+        ParsedAction = SmartlogMessage.content.split(": ")
+
+        if len(ParsedAction) != 2:
+            return False
+        
+        Action = ParsedAction[0].lower()
+        Argument = ParsedAction[1]
+
+        if not Action in Actions:
+            return False
+        
+        if Action == "removeuser":
+            UserList = self.ProcessUsers(Argument)
+
+            for User in UserList:
+                for Point, Users in self.Smartlog.items():
+                    if not User in Users:
+                        continue
+
+                    Users.remove(User)
+        elif Action == "addmany":
+            self.SmartlogFromMessage(Argument)
+        elif Action == "removepoint":
+            self.Smartlog.pop(Argument)
+
+        return False

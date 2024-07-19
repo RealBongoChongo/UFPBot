@@ -287,37 +287,28 @@ async def EventReminder():
 async def CreateSmartlog(ctx: discord.ApplicationContext):
     await ctx.defer()
 
-    SmartlogEmbed = discord.Embed(
-        description="Smartlog not created yet",
-        color=0x0452cf
-    )
-    SmartlogEmbed.set_author(name="United Federation of Planets Smartlog", icon_url=ctx.guild.icon.url)
+    SmartlogClass = smartlog.Smartlog(ctx)
 
-    Message = await ctx.respond("Create your smartlog in the following format by mentioning discord users or using their discord ID then say \"Done\" when you are done:\n\n1 - gogomangothacked2341, amazangprizanor\n2 - sniperrifle57\n\n-1 - banmched\n-2 - fatass\n\nWARNING: Use spaces between the `-` and use spaces after commas", embed=SmartlogEmbed)
+    Message = await ctx.respond("Create your smartlog in the following format by mentioning discord users or using their discord ID then say \"Done\" when you are done:\n\n1 - gogomangothacked2341, amazangprizanor\n2 - sniperrifle57\n\n-1 - banmched\n-2 - fatass\n\nWARNING: Use spaces between the `-` and use spaces after commas", embed=SmartlogClass.Embed)
 
-    Smartlog, SmartlogConfirm = {}, False
+    SmartlogConfirm = False
 
     while not SmartlogConfirm:
-        Smartlog, SmartlogConfirm = await smartlog.CreateSmartlogMessage(bot, ctx, Smartlog)
+        SmartlogConfirm = await SmartlogClass.CreateSmartlogDialog(bot, ctx)
 
-        SmartlogEmbed.clear_fields()
+        SmartlogClass.UpdateEmbed()
 
-        for Point, Users in deepcopy(Smartlog).items():
-            SmartlogEmbed.add_field(name="{} Point{}".format(Point, "" if Point == 1 or Point == -1 else "s"), value=", ".join(["<@{}>".format(User) for User in Users]), inline=False)
-
-        await Message.edit("Create your smartlog in the following format by mentioning discord users or using their discord ID then say \"Done\" when you are done:\n\n1 - gogomangothacked2341, amazangprizanor\n2 - sniperrifle57\n\n-1 - banmched\n-2 - fatass\n\nWARNING: Use spaces between the `-` and use spaces after commas", embed=SmartlogEmbed)
+        await Message.edit("Create your smartlog in the following format by mentioning discord users or using their discord ID then say \"Done\" when you are done:\n\n1 - gogomangothacked2341, amazangprizanor\n2 - sniperrifle57\n\n-1 - banmched\n-2 - fatass\n\nWARNING: Use spaces between the `-` and use spaces after commas", embed=SmartlogClass.Embed)
 
     await Message.delete()
 
-    SmartlogID = smartlog.LogSmartlog(Smartlog)
-    SmartlogEmbed.set_footer(text="Smartlog ID: {}".format(SmartlogID))
-    SmartlogEmbed.timestamp = datetime.datetime.now()
+    SmartlogClass.Log(ctx.author.id)
 
     SmartlogChannel = ctx.guild.get_channel(1263658686019141682)
 
-    await SmartlogChannel.send("**Smartlog from {}**".format(ctx.author), embed=SmartlogEmbed)
+    await SmartlogChannel.send("**Smartlog from {}**".format(ctx.author), embed=SmartlogClass.Embed, view=SmartlogClass.ToView())
 
-    await ctx.respond("Smartlog ID {} awaiting processing...".format(SmartlogID))
+    await ctx.respond("Smartlog awaiting processing...".format(SmartlogClass.Key))
 
 @bot.command(name="editmessage", description="Edit a message that UFP Bot has in a channel", guild_ids=[878364507385233480])
 async def editmessage(ctx, channel: discord.TextChannel, content: discord.Attachment, borders: bool=False, charterimage: bool = False):
@@ -1804,7 +1795,49 @@ async def on_message_edit(before, after):
 
             await channel.send("{}: {}".format(message.author, message.content))
 
+@bot.event
+async def on_interaction(Interaction: discord.Interaction):
+    if Interaction.is_component():
+        try:
+            await Interaction.response.defer()
+        except:
+            pass
 
+        try:
+            ParsedID = Interaction.custom_id.split(" | ")
+
+            if not len(ParsedID) == 2:
+                return
+            if not Interaction.user.get_role(1012070243004321802):
+                return await Interaction.respond(content="You aren't a Senior Officer", ephemeral=True)
+            
+            Action = ParsedID[0]
+            LogID = ParsedID[1]
+            
+            Smartlog = smartlog.Smartlog.FromID(LogID)
+            if not Smartlog:
+                return await Interaction.respond(content="Smartlog no longer exists.", ephemeral=True)
+
+            if Action == "Approve":
+                pass
+            elif Action == "Edit":
+                await Interaction.respond(content="Begin stating your edits.\n\nCommands:\n    removeuser: <userid or mention>\n    removepoint: <point amount>\n    addmany: <point amount> - <users>", ephemeral=True)
+                
+                EditSuccess = False
+
+                while not EditSuccess:
+                    EditSuccess = await Smartlog.EditSmartlogDialog(bot, Interaction)
+
+                    Smartlog.UpdateEmbed()
+
+                    Interaction.edit_original_message(embed=Smartlog.Embed)
+            elif Action == "Void":
+                pass
+        except Exception as e:
+            error = discord.utils.get(Interaction.guild.channels, id=1051489091339956235)
+            await error.send(traceback.format_exc())
+    else:
+        await bot.process_application_commands(Interaction)
 
 Thread(target=webserver.run).start()
 Thread(target=mentionedTask).start()
