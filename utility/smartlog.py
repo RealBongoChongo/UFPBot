@@ -94,6 +94,14 @@ class Smartlog:
         self.Message = Smartlog["Message"]
         self.Key = SmartlogID
 
+        self.Embed = discord.Embed(
+            color=0x0452cf
+        )
+        self.Embed.set_author(name="United Federation of Planets Smartlog", icon_url=ctx.guild.icon.url)
+        self.Embed.set_footer(text="Smartlog ID: {}".format(self.Key))
+        self.Embed.timestamp = datetime.datetime.now()
+
+
         return self
 
     def ProcessUsers(self, Selector: str) -> list[int]:
