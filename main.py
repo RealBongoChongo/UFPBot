@@ -1831,7 +1831,7 @@ async def on_interaction(Interaction: discord.Interaction):
 
                     Smartlog.UpdateEmbed()
 
-                    Interaction.edit_original_message(embed=Smartlog.Embed)
+                    await Interaction.edit_original_message(embed=Smartlog.Embed)
 
                 await Interaction.respond(content="Successfully edited.", ephemeral=True)
             elif Action == "Void":
