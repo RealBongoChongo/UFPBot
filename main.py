@@ -291,7 +291,7 @@ async def MyPoints(ctx: discord.ApplicationContext):
     Pending = 0
 
     for LogID, Log in deepcopy(Logs).items():
-        for Point, Users in Log["Log"]:
+        for Point, Users in Log["Log"].items():
             Point = int(Point)
 
             for User in Users:
