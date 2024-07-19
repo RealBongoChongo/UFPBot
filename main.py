@@ -298,9 +298,7 @@ async def CreateSmartlog(ctx: discord.ApplicationContext):
 
     Smartlog = {}
 
-    SmartlogAdd = smartlog.CreateSmartlogMessage(bot, ctx)
-
-    await ctx.respond(SmartlogAdd)
+    SmartlogAdd = await smartlog.CreateSmartlogMessage(bot, ctx)
 
     Smartlog = smartlog.MergeSmartlog(Smartlog, SmartlogAdd)
 
