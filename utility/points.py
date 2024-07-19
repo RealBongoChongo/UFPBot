@@ -34,6 +34,6 @@ def GetUser(UserID: int) -> dict:
 def AddPoints(UserID: int, Points: int) -> None:
     UserData = GetUser(UserID)
 
-    UserData["Point"] += Points
+    UserData["Points"] += Points
 
     WriteKey(str(UserID), UserData)
