@@ -268,7 +268,7 @@ async def EventReminder():
 
             EventEmbed = CreateEventEmbed(UFP, EventData["EventType"], EventData["EventTimestamp"], UFP.get_member(EventData["EventHost"]), EventData["EventNotes"], EventData["EventDuration"], EventID)
 
-            await EventChannel.send("**This event starts in less than an hour.**", embed=EventEmbed)
+            await EventChannel.send("<@&954234917846388826> **This event starts in less than an hour.**", embed=EventEmbed)
 
             eventhandler.EditEvent(EventID, EventData)
 
@@ -277,7 +277,7 @@ async def EventReminder():
 
             EventEmbed = CreateEventEmbed(UFP, EventData["EventType"], EventData["EventTimestamp"], UFP.get_member(EventData["EventHost"]), EventData["EventNotes"], EventData["EventDuration"], EventID)
 
-            await EventChannel.send("**This event has started.**", embed=EventEmbed)
+            await EventChannel.send("<@&954234917846388826> **This event has started.**", embed=EventEmbed)
 
             eventhandler.EditEvent(EventID, EventData)
 
