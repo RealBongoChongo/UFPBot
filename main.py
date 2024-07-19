@@ -281,6 +281,17 @@ async def EventReminder():
 
             eventhandler.EditEvent(EventID, EventData)
 
+@bot.command(name="create-smartlog", description="Create a smartlog", guild_ids=[878364507385233480])
+async def CreateSmartlog(ctx: discord.ApplicationContext):
+    await ctx.respond("Creating smartlog...")
+
+    SmartlogEmbed = discord.Embed(
+        description="Smartlog not created yet"
+    )
+    SmartlogEmbed.set_author(name="United Federation of Planets Smartlog", icon_url=ctx.guild.icon.url)
+
+    await ctx.respond("Create your smartlog in the following format:\n\n1 - gogomangothacked2341, amazangprizanor\n2 - sniperrifle57\n\n-1 - banmched\n-2 - fatass", embed=SmartlogEmbed)
+
 @bot.command(name="editmessage", description="Edit a message that UFP Bot has in a channel", guild_ids=[878364507385233480])
 async def editmessage(ctx, channel: discord.TextChannel, content: discord.Attachment, borders: bool=False, charterimage: bool = False):
     await ctx.defer()
