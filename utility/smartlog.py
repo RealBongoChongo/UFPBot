@@ -47,7 +47,7 @@ def SmartlogToString(Smartlog: dict) -> str:
     Log = []
 
     for LogLine in SmartlogList:
-        Log.append(f"{LogLine[0]} - {", ".join(LogLine[1])}")
+        Log.append("{} - {}".format(LogLine[0], ", ".join(LogLine[1])))
 
     return "\n".join(Log)
 
