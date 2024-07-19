@@ -22,7 +22,8 @@ def GetUser(UserID: int) -> dict:
             "Notes": [],
             "Consensus": [],
             "Ranklocked": False,
-            "Blacklisted": False
+            "Blacklisted": False,
+            "WaitingForPromotion": False
         }
 
         WriteKey(UserID, Data)
