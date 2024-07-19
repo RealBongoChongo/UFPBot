@@ -51,7 +51,7 @@ async def CreateSmartlogMessage(bot: discord.Bot, ctx: discord.ApplicationContex
     while not SmartlogSuccess:
         SmartlogMessage = await bot.wait_for("message", check=lambda message: message.author == ctx.author and message.channel == ctx.channel and message.guild == ctx.guild)
 
-        ParsedSmartlog = ParseSmartlogMessage(SmartlogMessage)
+        ParsedSmartlog = ParseSmartlogMessage(SmartlogMessage.content)
 
         SmartlogSuccess = bool(ParsedSmartlog)
 
