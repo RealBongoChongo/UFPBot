@@ -310,7 +310,7 @@ async def CreateSmartlog(ctx: discord.ApplicationContext):
     await Message.delete()
 
     SmartlogID = smartlog.LogSmartlog(Smartlog)
-    SmartlogEmbed.set_footer("Smartlog ID: {}".format(SmartlogID))
+    SmartlogEmbed.set_footer(text="Smartlog ID: {}".format(SmartlogID))
     SmartlogEmbed.timestamp = datetime.datetime.now()
 
     SmartlogChannel = ctx.guild.get_channel(1263658686019141682)
