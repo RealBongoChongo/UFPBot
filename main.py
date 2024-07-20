@@ -324,7 +324,7 @@ async def PointChecker():
 
             Embed.add_field(name="Member", value=str(Member), inline=False)
             Embed.add_field(name="Current Points", value=UserData["Points"], inline=False)
-            Embed.add_field(name="Action", value="Promotion to <@&{}>".format(str(PointRankAbove)), inline=False)
+            Embed.add_field(name="Action", value="Promotion to <@&{}>".format(ranks.GetMinimumRank(UserData["Points"])), inline=False)
         elif UserData["Points"] < PointRankBelow:
             view = discord.ui.View()
             view.add_item(points.PointButton("Demote", str(Member.id)))
@@ -1976,11 +1976,11 @@ async def on_interaction(Interaction: discord.Interaction):
                 UserData = points.GetUser(LogID)
 
                 if Action == "Promote":
-                    ranks.promoteMember(Member, Interaction.guild)
+                    await ranks.ReplaceRank(Member, Interaction.guild, int(ranks.GetMinimumRank(UserData["Points"])))
                 elif Action == "Minimum":
                     UserData["Points"] = ranks.requirements[str(ranks.getRank(Member).id)]
                 elif Action == "Demote":
-                    ranks.demoteMember(Member, Interaction.guild, int(ranks.GetMinimumRank(UserData["Points"])))
+                    await ranks.ReplaceRank(Member, Interaction.guild, int(ranks.GetMinimumRank(UserData["Points"])))
 
                 UserData["WaitingForRankChange"] = False
                 points.WriteKey(LogID, UserData)

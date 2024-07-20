@@ -88,6 +88,10 @@ def GetRankBelow(member: discord.Member) -> int:
 
             return newRank
 
+async def ReplaceRank(member: discord.Member, Guild: discord.Guild, Rank: int):
+    await member.remove_roles(getRank(member))
+    await member.add_roles(discord.utils.get(Guild.roles, id=Rank))
+
 async def demoteMember(member, guild, OverrideRank: int = None):
     roles = member.roles
     for role in roles:
@@ -96,7 +100,7 @@ async def demoteMember(member, guild, OverrideRank: int = None):
             newRank = ranks[rankIndex - 1 if rankIndex != 0 else 0]
 
             await member.remove_roles(role)
-            await member.add_roles(discord.utils.get(guild.roles, id=OverrideRank or newRank))
+            await member.add_roles(discord.utils.get(guild.roles, id=newRank))
             return
 
 async def promoteMember(member, guild):
