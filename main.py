@@ -301,7 +301,7 @@ async def PointChecker():
             continue
     
         Rank = ranks.getRank(Member).id
-        RankAbove = ranks.GetRankAbove(Member).id
+        RankAbove = ranks.GetRankAbove(Member)
 
         PointRankAbove = ranks.requirements[str(RankAbove)]
         PointRankBelow = ranks.requirements[str(Rank)]
