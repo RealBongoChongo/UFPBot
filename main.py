@@ -337,7 +337,7 @@ async def PointChecker():
 
             Embed.add_field(name="Member", value=str(Member), inline=False)
             Embed.add_field(name="Current Points", value=UserData["Points"], inline=False)
-            Embed.add_field(name="Action", value="Demotion to <@&{}>".format(str(ranks.GetRankBelow(Member).id)), inline=False)
+            Embed.add_field(name="Action", value="Demotion to <@&{}>".format(str(ranks.GetRankBelow(Member))), inline=False)
         else:
             continue
 
