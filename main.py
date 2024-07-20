@@ -309,13 +309,13 @@ async def PointChecker():
         PointRankAbove = ranks.requirements[str(RankAbove)]
         PointRankBelow = ranks.requirements[str(Rank)]
 
-        if not PointRankAbove:
-            continue
-
         if not PointRankBelow:
             continue
 
         if UserData["Points"] >= PointRankAbove:
+            if not PointRankAbove:
+                continue
+
             view = discord.ui.View()
             view.add_item(points.PointButton("Promote", str(Member.id)))
             view.add_item(points.PointButton("Minimum", str(Member.id)))
@@ -1942,7 +1942,7 @@ async def on_interaction(Interaction: discord.Interaction):
         try:
             ParsedID = Interaction.custom_id.split(" | ")
 
-            if not len(ParsedID) == 2:
+            if len(ParsedID) != 2:
                 return
             if not Interaction.user.get_role(1012070243004321802):
                 return await Interaction.respond(content="You aren't a Senior Officer", ephemeral=True)
