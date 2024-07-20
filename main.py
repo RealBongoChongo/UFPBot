@@ -312,7 +312,10 @@ async def PointChecker():
         if not PointRankBelow:
             continue
 
-        if PointRankAbove and (UserData["Points"] >= PointRankAbove):
+        if not PointRankAbove:
+            continue
+
+        if UserData["Points"] >= PointRankAbove:
             view = discord.ui.View()
             view.add_item(points.PointButton("Promote", str(Member.id)))
             view.add_item(points.PointButton("Minimum", str(Member.id)))
@@ -1975,13 +1978,9 @@ async def on_interaction(Interaction: discord.Interaction):
 
                 UserData = points.GetUser(LogID)
 
-                print("Among")
-
                 if Action == "Promote":
                     ranks.promoteMember(Member)
                 elif Action == "Minimum":
-                    print(ranks.requirements[str(ranks.getRank(Member).id)])
-
                     UserData["Points"] = ranks.requirements[str(ranks.getRank(Member).id)]
                 elif Action == "Demote":
                     ranks.demoteMember(Member)
