@@ -1987,6 +1987,8 @@ async def on_interaction(Interaction: discord.Interaction):
 
                 UserData["WaitingForRankChange"] = False
                 points.WriteKey(LogID, UserData)
+
+                await Interaction.delete_original_message()
             
         except Exception as e:
             error = discord.utils.get(Interaction.guild.channels, id=1051489091339956235)
