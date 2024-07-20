@@ -300,6 +300,9 @@ async def PointChecker():
         if UserData["WaitingForRankChange"]:
             continue
     
+        if not ranks.getRank(Member):
+            continue
+
         Rank = ranks.getRank(Member).id
         RankAbove = ranks.GetRankAbove(Member)
 
