@@ -63,7 +63,7 @@ def GetMinimumRank(Points: int) -> int:
             continue
 
         if not Point:
-            continue
+            return LastRank
 
         if Point >= Points:
             return LastRank
