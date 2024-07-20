@@ -66,7 +66,7 @@ def GetMinimumRank(Points: int) -> int:
             return LastRank
 
         if Point >= Points:
-            return LastRank
+            return RoleID
         
         LastRank = RoleID
         
