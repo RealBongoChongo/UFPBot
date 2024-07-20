@@ -378,7 +378,7 @@ async def ViewMyLogs(ctx: discord.ApplicationContext):
 
     for LogID, Log in deepcopy(Logs).items():
         if Log["Logger"] == ctx.author.id:
-            OwnedLogs.append(LogID)
+            OwnedLogs.append("`" + LogID + "`")
 
     Embed = discord.Embed(
         description="{}".format("\n".join(OwnedLogs)),
@@ -394,7 +394,7 @@ async def ViewPendingLogs(ctx: discord.ApplicationContext):
     FormattedLogs = []
 
     for LogID, Log in deepcopy(Logs).items():
-        FormattedLogs.append("{} - <@{}>".format(LogID, Log["Logger"]))
+        FormattedLogs.append("`{}` - <@{}>".format(LogID, Log["Logger"]))
 
     Embed = discord.Embed(
         description="{}".format("\n".join(FormattedLogs)),
