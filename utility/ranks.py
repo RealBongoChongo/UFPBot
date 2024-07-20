@@ -68,6 +68,8 @@ def GetMinimumRank(Points: int) -> int:
         if Point >= Points:
             return LastRank
         
+        LastRank = RoleID
+        
     return None
 
 def GetRankAbove(member: discord.Member) -> int:
