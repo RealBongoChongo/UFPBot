@@ -54,7 +54,23 @@ def getRank(member):
 
     return None
 
-def GetRankAbove(member):
+def GetMinimumRank(Points: int) -> int:
+    LastRank = None
+
+    for RoleID, Point in requirements.items():
+        if not LastRank:
+            LastRank = RoleID
+            continue
+
+        if not Point:
+            continue
+
+        if Point >= Points:
+            return LastRank
+        
+    return None
+
+def GetRankAbove(member: discord.Member) -> int:
     roles = member.roles
     for role in roles:
         if role.id in ranks:
@@ -63,7 +79,7 @@ def GetRankAbove(member):
 
             return newRank
 
-def GetRankBelow(member):
+def GetRankBelow(member: discord.Member) -> int:
     roles = member.roles
     for role in roles:
         if role.id in ranks:
@@ -72,7 +88,7 @@ def GetRankBelow(member):
 
             return newRank
 
-async def demoteMember(member, guild):
+async def demoteMember(member, guild, OverrideRank: int = None):
     roles = member.roles
     for role in roles:
         if role.id in ranks:
@@ -80,7 +96,7 @@ async def demoteMember(member, guild):
             newRank = ranks[rankIndex - 1 if rankIndex != 0 else 0]
 
             await member.remove_roles(role)
-            await member.add_roles(discord.utils.get(guild.roles, id=newRank))
+            await member.add_roles(discord.utils.get(guild.roles, id=OverrideRank or newRank))
             return
 
 async def promoteMember(member, guild):
