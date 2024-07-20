@@ -23,7 +23,7 @@ def GetUser(UserID: int) -> dict:
             "Consensus": [],
             "Ranklocked": False,
             "Blacklisted": False,
-            "WaitingForPromotion": False
+            "WaitingForRankChange": False
         }
 
         WriteKey(UserID, Data)
@@ -38,3 +38,13 @@ def AddPoints(UserID: int, Points: int) -> None:
     UserData["Points"] += Points
 
     WriteKey(str(UserID), UserData)
+
+class PointButton(discord.ui.Button):
+    def __init__(self, Label: str, UserID: str):
+        Colors = {
+            "Promote": discord.ButtonStyle.success,
+            "Minimum": discord.ButtonStyle.blurple,
+            "Demote": discord.ButtonStyle.danger,
+        }
+
+        super().__init__(label=Label, custom_id="{} | {}".format(Label if Label != "Minimum" else "Restart Rank", UserID), style=Colors[Label])

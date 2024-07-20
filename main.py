@@ -284,6 +284,69 @@ async def EventReminder():
 
             eventhandler.EditEvent(EventID, EventData)
 
+@tasks.loop(minutes=10)
+async def PointChecker():
+    UFP = bot.get_guild(878364507385233480)
+    RankUpdate = UFP.get_channel(1264001160172539905)
+
+    Points = points.ReadJson()
+
+    async for Member in UFP.fetch_members(limit=1000):
+        UserData = points.GetUser(Member.id)
+    
+        if UserData["Ranklocked"]:
+            continue
+
+        if UserData["WaitingForRankChange"]:
+            continue
+    
+        Rank = ranks.getRank(Member).id
+        RankAbove = ranks.GetRankAbove(Member).id
+
+        PointRankAbove = ranks.requirements[str(RankAbove)]
+        PointRankBelow = ranks.requirements[str(Rank)]
+
+        if not PointRankAbove:
+            continue
+
+        if not PointRankBelow:
+            continue
+
+        if UserData["Points"] >= PointRankAbove:
+            view = discord.ui.View()
+            view.add_item(points.PointButton("Promote", str(Member.id)))
+            view.add_item(points.PointButton("Minimum", str(Member.id)))
+
+            Embed = discord.Embed(
+                color=0x0452cf
+            )
+            Embed.set_author(name="United Federation of Planets", icon_url=UFP.icon.url)
+
+            Embed.add_field(name="Member", value=str(Member), inline=False)
+            Embed.add_field(name="Current Points", value=UserData["Points"], inline=False)
+            Embed.add_field(name="Action", value="Promotion to <@&{}>".format(str(PointRankAbove)), inline=False)
+        elif UserData["Points"] < PointRankBelow:
+            view = discord.ui.View()
+            view.add_item(points.PointButton("Demote", str(Member.id)))
+            view.add_item(points.PointButton("Minimum", str(Member.id)))
+
+            Embed = discord.Embed(
+                color=0x0452cf
+            )
+            Embed.set_author(name="United Federation of Planets", icon_url=UFP.icon.url)
+
+            Embed.add_field(name="Member", value=str(Member), inline=False)
+            Embed.add_field(name="Current Points", value=UserData["Points"], inline=False)
+            Embed.add_field(name="Action", value="Demotion to <@&{}>".format(str(ranks.GetRankBelow(Member).id)), inline=False)
+        else:
+            continue
+
+        await RankUpdate.send(embed=Embed)
+
+        UserData["WaitingForRankChange"] = True
+        points.WriteKey(str(Member.id), UserData)
+
+
 @bot.command(name="my-points", description="Find your points", guild_ids=[878364507385233480])
 async def MyPoints(ctx: discord.ApplicationContext):
     Logs = smartlog.ReadJson()
@@ -1710,6 +1773,7 @@ async def on_ready():
 
     reserveTask.start()
     EventReminder.start()
+    PointChecker.start()
     #channel = await guild.fetch_channel(878449851833151488)
     #msg = await channel.fetch_message(1118363480316182669)
     #await msg.edit("Little update on the moderation policy here today:\n\n- Transphobic stuff will lead to an automatic court martial\n\nThis change is because acfc is slowly gaining up on our asses mainly because they are getting curious and seeing the type of shit thats posted here ~~and cuz moderation wont do shit~~\n\n`- Admiral bungochungo`\n||<@&954234917846388826>||")
@@ -1883,28 +1947,44 @@ async def on_interaction(Interaction: discord.Interaction):
             Action = ParsedID[0]
             LogID = ParsedID[1]
             
-            Smartlog = smartlog.Smartlog.FromID(Interaction, LogID)
-            if not Smartlog:
-                return await Interaction.respond(content="Smartlog no longer exists.", ephemeral=True)
+            if Action in ["Approve", "Edit", "Void"]:
+                Smartlog = smartlog.Smartlog.FromID(Interaction, LogID)
+                if not Smartlog:
+                    return await Interaction.respond(content="Smartlog no longer exists.", ephemeral=True)
 
-            if Action == "Approve":
-                await Smartlog.Approve(Interaction.channel)
-            elif Action == "Edit":
-                await Interaction.respond(content="Begin stating your edits.\n\nCommands:\n    removeuser: <userid or mention>\n    removepoint: <point amount>\n    addmany: <point amount> - <users>", ephemeral=True)
-                
-                EditSuccess = False
+                if Action == "Approve":
+                    await Smartlog.Approve(Interaction.channel)
+                elif Action == "Edit":
+                    await Interaction.respond(content="Begin stating your edits.\n\nCommands:\n    removeuser: <userid or mention>\n    removepoint: <point amount>\n    addmany: <point amount> - <users>", ephemeral=True)
+                    
+                    EditSuccess = False
 
-                while not EditSuccess:
-                    EditSuccess = await Smartlog.EditSmartlogDialog(bot, Interaction)
+                    while not EditSuccess:
+                        EditSuccess = await Smartlog.EditSmartlogDialog(bot, Interaction)
 
-                    Smartlog.UpdateEmbed()
+                        Smartlog.UpdateEmbed()
 
-                    await Interaction.edit_original_message(embed=Smartlog.Embed)
+                        await Interaction.edit_original_message(embed=Smartlog.Embed)
 
-                Smartlog.Log()
-                await Interaction.respond(content="Successfully edited.", ephemeral=True)
-            elif Action == "Void":
-                await Smartlog.Delete(Interaction.channel)
+                    Smartlog.Log()
+                    await Interaction.respond(content="Successfully edited.", ephemeral=True)
+                elif Action == "Void":
+                    await Smartlog.Delete(Interaction.channel)
+            elif Action in ["Promote", "Minimum", "Demote"]:
+                Member = Interaction.guild.get_member(int(LogID))
+
+                UserData = points.GetUser(LogID)
+
+                if Action == "Promote":
+                    ranks.promoteMember(Member)
+                elif Action == "Minimum":
+                    UserData["Points"] = ranks.requirements[str(ranks.getRank(Member).id)]
+                elif Action == "Demote":
+                    ranks.demoteMember(Member)
+
+                UserData["WaitingForRankChange"] = False
+                points.WriteKey(LogID, UserData)
+            
         except Exception as e:
             error = discord.utils.get(Interaction.guild.channels, id=1051489091339956235)
             await error.send(traceback.format_exc())

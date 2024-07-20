@@ -15,6 +15,20 @@ ranks = [
     940455959858413658
 ]
 
+requirements = {
+    "878368140759797850": 0, 
+    "914732053789040660": 10,
+    "878367994009505833": 25,
+    "914732221611515904": 40,
+    "878367891559448589": 75,
+    "878367800937304146": 100,
+    "940456287496470578": None,
+    "1022239558093512825": None,
+    "940456210799411220": None,
+    "878367592706887761": None,
+    "940455959858413658": None
+}
+
 medals = [
     924064486858588161,
     951249495121858581,
@@ -39,6 +53,24 @@ def getRank(member):
             return role
 
     return None
+
+def GetRankAbove(member):
+    roles = member.roles
+    for role in roles:
+        if role.id in ranks:
+            rankIndex = ranks.index(role.id)
+            newRank = ranks[rankIndex + 1 if rankIndex != (len(ranks) - 1) else 0]
+
+            return newRank
+
+def GetRankBelow(member):
+    roles = member.roles
+    for role in roles:
+        if role.id in ranks:
+            rankIndex = ranks.index(role.id)
+            newRank = ranks[rankIndex - 1 if rankIndex != 0 else 0]
+
+            return newRank
 
 async def demoteMember(member, guild):
     roles = member.roles
