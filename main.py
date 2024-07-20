@@ -341,7 +341,7 @@ async def PointChecker():
         else:
             continue
 
-        await RankUpdate.send(embed=Embed)
+        await RankUpdate.send(embed=Embed, view=view)
 
         UserData["WaitingForRankChange"] = True
         points.WriteKey(str(Member.id), UserData)
