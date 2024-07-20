@@ -312,10 +312,7 @@ async def PointChecker():
         if not PointRankBelow:
             continue
 
-        if UserData["Points"] >= PointRankAbove:
-            if not PointRankAbove:
-                continue
-
+        if PointRankAbove and UserData["Points"] >= PointRankAbove:
             view = discord.ui.View()
             view.add_item(points.PointButton("Promote", str(Member.id)))
             view.add_item(points.PointButton("Minimum", str(Member.id)))
