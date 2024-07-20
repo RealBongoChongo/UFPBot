@@ -309,9 +309,6 @@ async def PointChecker():
         PointRankAbove = ranks.requirements[str(RankAbove)]
         PointRankBelow = ranks.requirements[str(Rank)]
 
-        if not PointRankBelow:
-            continue
-
         if PointRankAbove and UserData["Points"] >= PointRankAbove:
             view = discord.ui.View()
             view.add_item(points.PointButton("Promote", str(Member.id)))
@@ -325,7 +322,7 @@ async def PointChecker():
             Embed.add_field(name="Member", value=str(Member), inline=False)
             Embed.add_field(name="Current Points", value=UserData["Points"], inline=False)
             Embed.add_field(name="Action", value="Promotion to <@&{}>".format(ranks.GetMinimumRank(UserData["Points"])), inline=False)
-        elif UserData["Points"] < PointRankBelow:
+        elif PointRankBelow and UserData["Points"] < PointRankBelow:
             view = discord.ui.View()
             view.add_item(points.PointButton("Demote", str(Member.id)))
             view.add_item(points.PointButton("Minimum", str(Member.id)))
