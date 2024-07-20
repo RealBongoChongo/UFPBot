@@ -1978,9 +1978,13 @@ async def on_interaction(Interaction: discord.Interaction):
 
                 UserData = points.GetUser(LogID)
 
+                print("Among")
+
                 if Action == "Promote":
                     ranks.promoteMember(Member)
                 elif Action == "Minimum":
+                    print(ranks.requirements[str(ranks.getRank(Member).id)])
+
                     UserData["Points"] = ranks.requirements[str(ranks.getRank(Member).id)]
                 elif Action == "Demote":
                     ranks.demoteMember(Member)

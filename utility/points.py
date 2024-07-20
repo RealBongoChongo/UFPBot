@@ -47,4 +47,4 @@ class PointButton(discord.ui.Button):
             "Demote": discord.ButtonStyle.danger,
         }
 
-        super().__init__(label=Label, custom_id="{} | {}".format(Label if Label != "Minimum" else "Restart Rank", UserID), style=Colors[Label])
+        super().__init__(label=Label if Label != "Minimum" else "Restart Rank", custom_id="{} | {}".format(Label, UserID), style=Colors[Label])
