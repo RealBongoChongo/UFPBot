@@ -431,7 +431,7 @@ async def ViewConsensus(ctx: discord.ApplicationContext, member: discord.Member)
         return await ctx.respond("User's consensus is empty")
 
     Embed = discord.Embed(
-        "\n".join(["{}: `{}` - <@{}>".format(UserData["Consensus"].index(Note), Note["Note"], Note["Creator"]) for Note in UserData["Consensus"]]),
+        description="\n".join(["{}: `{}` - <@{}>".format(UserData["Consensus"].index(Note), Note["Note"], Note["Creator"]) for Note in UserData["Consensus"]]),
         color=0x0452cf
     )
     Embed.set_author(name="United Federation of Planets", icon_url=ctx.guild.icon.url)
