@@ -411,6 +411,56 @@ async def ViewLog(ctx: discord.ApplicationContext, logid: str):
 
     await ctx.respond(embed=Smartlog.Embed)
 
+@bot.command(name="view-consensus", description="View someone's consensus", guild_ids=[878364507385233480])
+async def ViewConsensus(ctx: discord.ApplicationContext, member: discord.Member):
+    UserData = points.GetUser(member.id)
+
+    if not UserData["Consensus"]:
+        return await ctx.respond("User's consensus is empty")
+
+    Embed = discord.Embed(
+        "\n".join(["{}: `{}` - <@{}>".format(UserData["Consensus"].index(Note), Note["Note"], Note["Creator"]) for Note in UserData["Consensus"]]),
+        color=0x0452cf
+    )
+    Embed.set_author(name="United Federation of Planets", icon_url=ctx.guild.icon.url)
+
+    await ctx.respond(embed=Embed)
+
+@bot.command(name="add-consensus", description="Add to someone's consensus", guild_ids=[878364507385233480])
+async def AddConsensus(ctx: discord.ApplicationContext, member: discord.Member, note: str):
+    UserData = points.GetUser(member.id)
+
+    UserData["Consensus"].append({
+        "Note": note,
+        "Creator": str(ctx.author.id)
+    })
+
+    points.WriteKey(member.id, UserData)
+
+    await ctx.respond("Added to consensus.")
+
+@bot.command(name="remove-consensus", description="Remove an item from someone's consensus", guild_ids=[878364507385233480])
+async def RemoveConsensus(ctx: discord.ApplicationContext, member: discord.Member, position: int):
+    UserData = points.GetUser(member.id)
+
+    Item = UserData["Consensus"][position]
+
+    UserData["Consensus"].remove(Item)
+
+    points.WriteKey(member.id, UserData)
+
+    await ctx.respond("Removed item from consensus.")
+
+@bot.command(name="clear-consensus", description="Clear someone's consensus", guild_ids=[878364507385233480])
+async def ClearConsensus(ctx: discord.ApplicationContext, member: discord.Member):
+    UserData = points.GetUser(member.id)
+
+    UserData["Consensus"] = []
+
+    points.WriteKey(member.id, UserData)
+
+    await ctx.respond("Cleared consensus.")
+
 @bot.command(name="create-smartlog", description="Create a smartlog", guild_ids=[878364507385233480])
 async def CreateSmartlog(ctx: discord.ApplicationContext):
     await ctx.defer()
