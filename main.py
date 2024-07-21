@@ -364,7 +364,31 @@ async def MyPoints(ctx: discord.ApplicationContext):
         color=0x0452cf
     )
     Embed.set_author(name="United Federation of Planets", icon_url=ctx.guild.icon.url)
-    Embed.add_field(name="Points", value="{} Points{}{}".format(UserData["Points"], f" ({Pending} Pending)" if Pending else "", "\nRanklocked" if UserData["Ranklocked"] else ""))
+    Embed.add_field(name="Points", value="{} Points{}{}".format(UserData["Points"], f" ({Pending} Pending)" if Pending else "", "\n    Ranklocked" if UserData["Ranklocked"] else ""))
+
+    await ctx.respond(embed=Embed)
+
+@bot.command(name="get-points", description="Find someone else's points", guild_ids=[878364507385233480])
+async def GetPoints(ctx: discord.ApplicationContext, member: discord.Member):
+    Logs = smartlog.ReadJson()
+
+    Pending = 0
+
+    for LogID, Log in deepcopy(Logs).items():
+        for Point, Users in Log["Log"].items():
+            Point = int(Point)
+
+            for User in Users:
+                if User == member.id:
+                    Pending += Point
+
+    UserData = points.GetUser(member.id)
+
+    Embed = discord.Embed(
+        color=0x0452cf
+    )
+    Embed.set_author(name="United Federation of Planets", icon_url=ctx.guild.icon.url)
+    Embed.add_field(name="Points", value="{} Points{}{}".format(UserData["Points"], f" ({Pending} Pending)" if Pending else "", "\n    Ranklocked" if UserData["Ranklocked"] else ""))
 
     await ctx.respond(embed=Embed)
 
