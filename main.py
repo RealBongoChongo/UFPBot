@@ -358,11 +358,13 @@ async def MyPoints(ctx: discord.ApplicationContext):
                 if User == ctx.author.id:
                     Pending += Point
 
+    UserData = points.GetUser(ctx.author.id)
+
     Embed = discord.Embed(
         color=0x0452cf
     )
     Embed.set_author(name="United Federation of Planets", icon_url=ctx.guild.icon.url)
-    Embed.add_field(name="Points", value="{} Points{}".format(points.GetUser(ctx.author.id)["Points"], f" ({Pending} Pending)" if Pending else ""))
+    Embed.add_field(name="Points", value="{} Points{}{}".format(UserData["Points"], f" ({Pending} Pending)" if Pending else "", "\nRanklocked" if UserData["Ranklocked"] else ""))
 
     await ctx.respond(embed=Embed)
 
@@ -410,6 +412,16 @@ async def ViewLog(ctx: discord.ApplicationContext, logid: str):
     Smartlog.UpdateEmbed()
 
     await ctx.respond(embed=Smartlog.Embed)
+
+@bot.command(name="ranklock", description="Ranklock someone", guild_ids=[878364507385233480])
+async def RanklockUser(ctx: discord.ApplicationContext, member: discord.Member, setting: bool):
+    UserData = points.GetUser(member.id)
+
+    UserData["Ranklocked"] = setting
+
+    WriteKey(member.id, UserData)
+
+    await ctx.respond("User ranklocked.")
 
 @bot.command(name="view-consensus", description="View someone's consensus", guild_ids=[878364507385233480])
 async def ViewConsensus(ctx: discord.ApplicationContext, member: discord.Member):
