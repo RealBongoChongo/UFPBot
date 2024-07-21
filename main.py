@@ -419,7 +419,7 @@ async def RanklockUser(ctx: discord.ApplicationContext, member: discord.Member, 
 
     UserData["Ranklocked"] = setting
 
-    WriteKey(member.id, UserData)
+    points.WriteKey(member.id, UserData)
 
     await ctx.respond("User ranklocked.")
 
