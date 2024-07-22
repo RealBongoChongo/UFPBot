@@ -2066,13 +2066,14 @@ async def on_interaction(Interaction: discord.Interaction):
 
             if len(ParsedID) != 2:
                 return
-            if not Interaction.user.get_role(1012070243004321802):
-                return await Interaction.respond(content="You aren't a Senior Officer", ephemeral=True)
             
             Action = ParsedID[0]
             LogID = ParsedID[1]
             
             if Action in ["Approve", "Edit", "Void"]:
+                if not Interaction.user.get_role(1012070243004321802):
+                    return await Interaction.respond(content="You aren't a Senior Officer", ephemeral=True)
+                
                 Smartlog = smartlog.Smartlog.FromID(Interaction, LogID)
                 if not Smartlog:
                     return await Interaction.respond(content="Smartlog no longer exists.", ephemeral=True)
@@ -2096,6 +2097,9 @@ async def on_interaction(Interaction: discord.Interaction):
                 elif Action == "Void":
                     await Smartlog.Delete(Interaction.channel)
             elif Action in ["Promote", "Minimum", "Demote"]:
+                if not Interaction.user.get_role(1012070243004321802):
+                    return await Interaction.respond(content="You aren't a Senior Officer", ephemeral=True)
+                
                 Member = Interaction.guild.get_member(int(LogID))
 
                 UserData = points.GetUser(LogID)
