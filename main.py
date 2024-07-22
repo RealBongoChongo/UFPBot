@@ -235,7 +235,7 @@ async def createEvent(ctx: discord.ApplicationContext, eventtype, eventnotes: st
     View = discord.ui.View()
     View.add_item(EventButton("View Event", EventID))
 
-    await events.send("**A new event has been scheduled.**", embed=Embed, view=View)
+    await events.send("**A new event has been scheduled.**", view=View)
 
     await msg.edit("Successfully scheduled the event.")
 
