@@ -193,6 +193,10 @@ def CreateEventEmbed(Guild: discord.Guild, EventType: str, EventTimestamp: int, 
 
     return StarterEmbed
 
+class EventButton(discord.ui.Button):
+    def __init__(self, Label: str, SmartlogID: str):
+        super().__init__(label=Label, custom_id="{} | {}".format(Label, SmartlogID), style=discord.ButtonStyle.gray)
+
 @bot.command(name="create-event", description="Create a classified event for Commissioned Personnel (TIME MUST BE IN UTC)", guild_ids=[878364507385233480])
 @discord.commands.option("eventtype", choices=["Training", "Patrol", "Workshop", "Testing", "Battle"])
 @discord.commands.option("eventminute", choices=[0, 15, 30, 45])
@@ -228,7 +232,10 @@ async def createEvent(ctx: discord.ApplicationContext, eventtype, eventnotes: st
 
     await msg.edit("Sending Event Embed Into <#{}>...".format(events.id))
 
-    await events.send("**A new event has been scheduled.**", embed=Embed)
+    View = discord.ui.View()
+    View.add_item(EventButton("View Event", EventID))
+
+    await events.send("**A new event has been scheduled.**", embed=Embed, view=View)
 
     await msg.edit("Successfully scheduled the event.")
 
@@ -2069,6 +2076,17 @@ async def on_interaction(Interaction: discord.Interaction):
                 points.WriteKey(LogID, UserData)
 
                 await Interaction.delete_original_message()
+            elif Action in ["View Event"]:
+                Event = eventhandler.GetEvent(LogID)
+                if not Event:
+                    return await Interaction.respond("Event not found.", ephemeral=True)
+
+                OriginalMessage = await Interaction.original_message()
+
+                MRChat = Interaction.guild.get_channel(1264678923145580544)
+                await MRChat.send("{} has viewed the event: {}".format(Interaction.user, OriginalMessage.jump_url))
+
+                await Interaction.respond(embed=CreateEventEmbed(Interaction.guild, Event["EventType"], Event["EventTimestamp"], Interaction.guild.get_member(Event["EventHost"]), Event["EventNotes"], Event["EventDuration"], LogID), ephemeral=True)
             
         except Exception as e:
             error = discord.utils.get(Interaction.guild.channels, id=1051489091339956235)
