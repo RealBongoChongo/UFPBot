@@ -247,6 +247,41 @@ async def GetEvent(ctx: discord.ApplicationContext, eventid: str):
 
     await ctx.respond(embed=CreateEventEmbed(ctx.guild, Event["EventType"], Event["EventTimestamp"], ctx.guild.get_member(Event["EventHost"]), Event["EventNotes"], Event["EventDuration"], eventid))
 
+@bot.command(name="edit-event", description="Retrive an event created", guild_ids=[878364507385233480])
+async def GetEvent(ctx: discord.ApplicationContext, eventid: str, eventnotes: str=None, eventduration: int=None, eventday: int=None, eventmonth: int=None, eventyear: int=None, eventhour: int=None, eventminute: int=None):
+    Event = eventhandler.GetEvent(eventid)
+    if not Event:
+        return await ctx.respond("Event not found.")
+    
+    View = discord.ui.View()
+    View.add_item(EventButton("View Event", eventid))
+
+    nowUTCTime = datetime.datetime.now()
+    TimeFromTimestamp = datetime.datetime.fromtimestamp(Event["EventTimestamp"])
+    
+    EventTimestamp = datetime.datetime(
+        year=eventyear or TimeFromTimestamp.year, 
+        month=eventmonth or TimeFromTimestamp.month, 
+        day=eventday or TimeFromTimestamp.day,
+        hour=eventhour or TimeFromTimestamp.hour,
+        minute=eventminute or TimeFromTimestamp.minute
+    )
+
+    if eventhour:
+        EventTimestamp -= datetime.timedelta(hours=5)
+
+    if EventTimestamp < nowUTCTime and EventTimestamp + datetime.timedelta(hours=12) >= nowUTCTime:
+        EventTimestamp += datetime.timedelta(hours=12)
+    if EventTimestamp < nowUTCTime and EventTimestamp + datetime.timedelta(hours=12) < nowUTCTime:
+        return await ctx.respond("Event time has already passed")
+    
+    Event = eventhandler.EditEvent(eventid, EventTimestamp=int(EventTimestamp.timestamp()), EventNotes=eventnotes, EventDuration=eventduration)
+
+    events = await ctx.guild.fetch_channel(1263544155691286639)
+    await events.send("**An event has been updated**", view=View)
+
+    await ctx.respond(embed=CreateEventEmbed(ctx.guild, Event["EventType"], Event["EventTimestamp"], ctx.guild.get_member(Event["EventHost"]), Event["EventNotes"], Event["EventDuration"], eventid))
+
 @bot.command(name="delete-event", description="Delete an event created", guild_ids=[878364507385233480])
 async def DeleteEvent(ctx: discord.ApplicationContext, eventid: str):
     Event = eventhandler.GetEvent(eventid)
