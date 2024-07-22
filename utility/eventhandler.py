@@ -37,7 +37,8 @@ def CreateEvent(EventType: str, EventTimestamp: int, EventHost: discord.Member, 
         "EventType": EventType,
         "EventDuration": EventDuration,
         "Reminded": False,
-        "Announced": False
+        "Announced": False,
+        "Viewed": []
     })
 
     return EventID
@@ -52,12 +53,20 @@ def EditEvent(EventID: str, EventType: str=None, EventTimestamp: int=None, Event
         "EventType": EventType or Event["EventType"],
         "EventDuration": EventDuration or Event["EventDuration"],
         "Reminded": False or Event["Reminded"],
-        "Announced": False or Event["Announced"]
+        "Announced": False or Event["Announced"],
+        "Viewed": [] or Event["Viewed"]
     }
 
     WriteKey(EventID, EventData)
 
     return EventData
+
+def AddViewed(EventID: str, UserID: int) -> None:
+    Event = GetEvent(EventID)
+
+    Event["Viewed"].append(UserID)
+
+    WriteKey(EventID, Event)
 
 def GetEvent(EventID) -> dict:
     if not EventID in ReadJson():

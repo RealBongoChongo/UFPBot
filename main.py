@@ -280,7 +280,7 @@ async def GetEvent(ctx: discord.ApplicationContext, eventid: str, eventnotes: st
     events = await ctx.guild.fetch_channel(1263544155691286639)
     await events.send("**An event has been updated**", view=View)
 
-    await ctx.respond(embed=CreateEventEmbed(ctx.guild, Event["EventType"], Event["EventTimestamp"], ctx.guild.get_member(Event["EventHost"]), Event["EventNotes"], Event["EventDuration"], eventid))
+    await ctx.respond("Event updated.")
 
 @bot.command(name="delete-event", description="Delete an event created", guild_ids=[878364507385233480])
 async def DeleteEvent(ctx: discord.ApplicationContext, eventid: str):
@@ -2118,8 +2118,10 @@ async def on_interaction(Interaction: discord.Interaction):
 
                 OriginalMessage = await Interaction.original_message()
 
-                MRChat = Interaction.guild.get_channel(1264678923145580544)
-                await MRChat.send("{} has viewed the event: {}".format(Interaction.user, OriginalMessage.jump_url))
+                if not Interaction.user.id in Event["Viewed"]:
+                    MRChat = Interaction.guild.get_channel(1264678923145580544)
+                    await MRChat.send("{} has viewed the event: {}".format(Interaction.user, OriginalMessage.jump_url))
+                    eventhandler.AddViewed(LogID, Interaction.user.id)
 
                 await Interaction.respond(embed=CreateEventEmbed(Interaction.guild, Event["EventType"], Event["EventTimestamp"], Interaction.guild.get_member(Event["EventHost"]), Event["EventNotes"], Event["EventDuration"], LogID), ephemeral=True)
             
