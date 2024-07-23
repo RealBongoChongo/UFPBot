@@ -251,8 +251,8 @@ class SmartlogModal(discord.ui.Modal):
 
         self.add_item(discord.ui.InputText(
             style=discord.InputTextStyle.multiline,
-            placeholder="1 - gogomangothacked2341, amazangprizanor\n2 - sniperrifle57\n\n-1 - banmched\n-2 - fatass",
-            label="Discord IDs, Discord Usernames/Nicknames, Roblox Usernames, or raw pings (e.g. <@485513915548041239>, bungochungo, gogomangothacked2341)"
+            placeholder="1 - gogomangothacked2341, amazangprizanor, bungochungo\n2 - sniperrifle57, 485513915548041239\n\n-1 - banmched, <@485513915548041239>\n-2 - fatass",
+            label="Discord IDs, Discord Usernames/Nicknames, Roblox Usernames, or raw pings"
         ))
 
     async def callback(self, interaction: discord.Interaction):
@@ -283,12 +283,12 @@ class SmartlogView(discord.ui.View):
     @discord.ui.button(label="Cancel Log", style=discord.ButtonStyle.danger, row=1)
     async def CancelLog(self, button: discord.ui.Button, interaction: discord.Interaction):
         self.Cancelled = True
-        
+
         self.stop()
         await interaction.delete_original_response()
 
     @discord.ui.button(label="Submit Log", style=discord.ButtonStyle.success, row=1)
-    async def CancelLog(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def SubmitLog(self, button: discord.ui.Button, interaction: discord.Interaction):
         for child in self.children:
             child.disabled = True
 
