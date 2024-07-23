@@ -1,5 +1,5 @@
 import discord
-from discord.ext import tasks
+from discord.ext import tasks, commands
 
 import datetime
 
@@ -20,7 +20,7 @@ class Events(discord.Cog):
 
         return super().cog_unload()
 
-    @discord.slash_command(name="create-event", description="Create a classified event for Commissioned Personnel (TIME MUST BE IN UTC)", guild_ids=[878364507385233480])
+    @commands.slash_command(name="create-event", description="Create a classified event for Commissioned Personnel (TIME MUST BE IN UTC)", guild_ids=[878364507385233480])
     @discord.commands.option("eventtype", choices=["Training", "Patrol", "Workshop", "Testing", "Battle"])
     @discord.commands.option("eventminute", choices=[0, 15, 30, 45])
     @discord.commands.option("eventduration", choices=[15, 30, 45, 60, 75, 90, 105, 120])
@@ -58,7 +58,7 @@ class Events(discord.Cog):
 
         await msg.edit("Successfully scheduled the event.")
 
-    @discord.slash_command(name="get-event", description="Retrive an event created", guild_ids=[878364507385233480])
+    @commands.slash_command(name="get-event", description="Retrive an event created", guild_ids=[878364507385233480])
     async def GetEvent(ctx: discord.ApplicationContext, eventid: str):
         Event = eventhandler.GetEvent(eventid)
         if not Event:
@@ -66,7 +66,7 @@ class Events(discord.Cog):
 
         await ctx.respond(embed=embeds.CreateEventEmbed(ctx.guild, Event["EventType"], Event["EventTimestamp"], ctx.guild.get_member(Event["EventHost"]), Event["EventNotes"], Event["EventDuration"], eventid))
 
-    @discord.slash_command(name="edit-event", description="Retrive an event created", guild_ids=[878364507385233480])
+    @commands.slash_command(name="edit-event", description="Retrive an event created", guild_ids=[878364507385233480])
     async def GetEvent(ctx: discord.ApplicationContext, eventid: str, eventnotes: str=None, eventduration: int=None, eventday: int=None, eventmonth: int=None, eventyear: int=None, eventhour: int=None, eventminute: int=None):
         Event = eventhandler.GetEvent(eventid)
         if not Event:
@@ -101,7 +101,7 @@ class Events(discord.Cog):
 
         await ctx.respond("Event updated.")
 
-    @discord.slash_command(name="delete-event", description="Delete an event created", guild_ids=[878364507385233480])
+    @commands.slash_command(name="delete-event", description="Delete an event created", guild_ids=[878364507385233480])
     async def DeleteEvent(ctx: discord.ApplicationContext, eventid: str):
         Event = eventhandler.GetEvent(eventid)
         if not Event:
