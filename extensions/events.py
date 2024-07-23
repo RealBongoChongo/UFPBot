@@ -145,5 +145,5 @@ class Events(discord.Cog):
 
                 eventhandler.EditEvent(EventID, EventData)
 
-def add_cog(bot: discord.Bot):
+def setup(bot: discord.Bot):
     bot.add_cog(Events(bot))

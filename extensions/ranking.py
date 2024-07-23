@@ -244,5 +244,5 @@ class Ranking(discord.Cog):
 
         await ctx.respond("Pointlog awaiting processing...".format(PointlogClass.Key))
 
-def add_cog(bot: discord.Bot):
+def setup(bot: discord.Bot):
     bot.add_cog(Ranking(bot))
