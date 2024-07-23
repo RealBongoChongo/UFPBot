@@ -118,7 +118,19 @@ class Smartlog:
 
         return FinalUsers
     
-    def SmartlogFromMessage(self, Message: str) -> None:
+    def FindUserInSmartlog(self, UserID: int, Delete: bool=False) -> int:
+        for Point, Users in deepcopy(self.Smartlog).items():
+            if UserID in Users:
+                self.Smartlog[Point].remove(UserID)
+
+                return int(Point)
+            
+        return 0
+    
+    def SmartlogFromMessage(self, Message: str, Guild: discord.Guild, Overwrite: bool) -> None:
+        if Overwrite:
+            self.Smartlog = {}
+
         MessageLines = Message.split("\n")
 
         for Line in MessageLines:
@@ -138,6 +150,16 @@ class Smartlog:
 
             for User in Users:
                 UserID = User.replace("<@", "").replace(">", "")
+                try:
+                    int(UserID)
+                except:
+                    Member = Guild.get_member_named(UserID)
+                    if Member:
+                        UserID = Member.id
+                    else:
+                        continue
+                
+                Point = self.FindUserInSmartlog(int(UserID), True) + Point
 
                 self.Smartlog[str(Point)].append(int(UserID))
 
@@ -180,7 +202,7 @@ class Smartlog:
         if SmartlogMessage.content.lower() == "done":
             return True
 
-        self.SmartlogFromMessage(SmartlogMessage.content)
+        self.SmartlogFromMessage(SmartlogMessage.content, ctx.guild)
 
         return False
     
@@ -214,8 +236,61 @@ class Smartlog:
 
                     Users.remove(User)
         elif Action == "addmany":
-            self.SmartlogFromMessage(Argument)
+            self.SmartlogFromMessage(Argument, Interaction.guild)
         elif Action == "removepoint":
             self.Smartlog.pop(Argument)
 
         return False
+    
+class SmartlogModal(discord.ui.Modal):
+    def __init__(self, Log: Smartlog, Overwrite: bool):
+        super().__init__(title="Smartlog Input", timeout=None)
+
+        self.Smartlog: Smartlog = Log
+        self.Overwrite: bool = Overwrite
+
+        self.add_item(discord.ui.InputText(
+            style=discord.InputTextStyle.multiline,
+            placeholder="1 - gogomangothacked2341, amazangprizanor\n2 - sniperrifle57\n\n-1 - banmched\n-2 - fatass",
+            label="Discord IDs, Discord Usernames/Nicknames, Roblox Usernames, or raw pings (e.g. <@485513915548041239>, bungochungo, gogomangothacked2341)"
+        ))
+
+    async def callback(self, interaction: discord.Interaction):
+        TextBox: discord.ui.InputText = self.children[0]
+
+        self.Smartlog.SmartlogFromMessage(TextBox.value, interaction.guild, self.Overwrite)
+        self.Smartlog.UpdateEmbed()
+        
+        await interaction.edit_original_response(embed=self.Smartlog.Embed)
+
+        return await super().callback(interaction)
+    
+class SmartlogView(discord.ui.View):
+    def __init__(self, Log: Smartlog):
+        super().__init__(timeout=None)
+
+        self.Smartlog: Smartlog = Log
+        self.Cancelled: bool = False
+
+    @discord.ui.button(label="Add Data", style=discord.ButtonStyle.gray)
+    async def AddData(self, button: discord.ui.Button, interaction: discord.Interaction):
+        await interaction.response.send_modal(SmartlogModal(self.Smartlog, False))
+
+    @discord.ui.button(label="Overwrite Data", style=discord.ButtonStyle.gray)
+    async def OverwriteData(self, button: discord.ui.Button, interaction: discord.Interaction):
+        await interaction.response.send_modal(SmartlogModal(self.Smartlog, True))
+
+    @discord.ui.button(label="Cancel Log", style=discord.ButtonStyle.danger, row=1)
+    async def CancelLog(self, button: discord.ui.Button, interaction: discord.Interaction):
+        self.Cancelled = True
+        
+        self.stop()
+        await interaction.delete_original_response()
+
+    @discord.ui.button(label="Submit Log", style=discord.ButtonStyle.success, row=1)
+    async def CancelLog(self, button: discord.ui.Button, interaction: discord.Interaction):
+        for child in self.children:
+            child.disabled = True
+
+        await interaction.edit_original_response(view=self)
+        self.stop()
