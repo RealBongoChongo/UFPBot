@@ -7,6 +7,20 @@ import traceback
 import datetime
 from threading import Thread
 import webserver
+from copy import deepcopy
+from textwrap import wrap
+import requests
+import json
+import random
+import re
+import asyncio
+from gpiozero import CPUTemperature
+import psutil
+import plotly.express as px
+import pandas as pd
+import openai
+import argparse
+
 from utility import jsonhandler
 from utility import blackjack
 from utility import ships
@@ -21,19 +35,7 @@ from utility import commandingOfficers
 from utility import eventhandler
 from utility import pointlog
 from utility import points
-from copy import deepcopy
-from textwrap import wrap
-import requests
-import json
-import random
-import re
-import asyncio
-from gpiozero import CPUTemperature
-import psutil
-import plotly.express as px
-import pandas as pd
-import openai
-import argparse
+
 parser = argparse.ArgumentParser()
 
 parser.add_argument("-d", "--development", help="Runs outside raspberry pi")
