@@ -143,12 +143,7 @@ class Smartlog:
             except:
                 continue
 
-            Point = self.FindUserInSmartlog(int(UserID), True) + Point
-
             Users = ParsedLine[1].split(", ")
-
-            if not str(Point) in self.Smartlog:
-                self.Smartlog[str(Point)] = []
 
             for User in Users:
                 UserID = User.replace("<@", "").replace(">", "")
@@ -160,6 +155,11 @@ class Smartlog:
                         UserID = Member.id
                     else:
                         continue
+
+                Point = self.FindUserInSmartlog(int(UserID), True) + Point
+                    
+                if not str(Point) in self.Smartlog:
+                    self.Smartlog[str(Point)] = []
 
                 self.Smartlog[str(Point)].append(int(UserID))
 
