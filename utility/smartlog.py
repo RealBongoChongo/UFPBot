@@ -76,6 +76,9 @@ class Smartlog:
         self.Embed.clear_fields()
 
         for Point, Users in deepcopy(self.Smartlog).items():
+            if not Users:
+                continue
+
             self.Embed.add_field(name="{} Point{}".format(Point, "" if Point == 1 or Point == -1 else "s"), value=", ".join(["<@{}>".format(User) for User in Users]), inline=False)
 
     @classmethod
