@@ -544,10 +544,9 @@ async def CreateSmartlog(ctx: discord.ApplicationContext):
     await ctx.defer()
 
     SmartlogClass = smartlog.Smartlog(ctx)
-
-    Message = await ctx.respond(embed=SmartlogClass.Embed)
-
     SmartlogView = smartlog.SmartlogView(SmartlogClass)
+
+    await ctx.respond(embed=SmartlogClass.Embed, view=SmartlogView)
 
     await SmartlogView.wait()
 
