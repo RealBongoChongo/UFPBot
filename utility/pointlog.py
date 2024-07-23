@@ -29,25 +29,25 @@ def WriteKey(Key: str, Value) -> None:
 
     WriteJson(Data)
 
-def GetSmartlog(SmartlogID: str) -> dict:
-    if not SmartlogID in ReadJson():
+def GetPointlog(PointlogID: str) -> dict:
+    if not PointlogID in ReadJson():
         return None
     
-    return ReadJson()[SmartlogID]
+    return ReadJson()[PointlogID]
 
-class SmartlogButton(discord.ui.Button):
-    def __init__(self, Label: str, SmartlogID: str):
+class PointlogButton(discord.ui.Button):
+    def __init__(self, Label: str, PointlogID: str):
         Colors = {
             "Approve": discord.ButtonStyle.success,
             "Edit": discord.ButtonStyle.blurple,
             "Void": discord.ButtonStyle.danger,
         }
 
-        super().__init__(label=Label, custom_id="{} | {}".format(Label, SmartlogID), style=Colors[Label])
+        super().__init__(label=Label, custom_id="{} | {}".format(Label, PointlogID), style=Colors[Label])
 
-class Smartlog:
+class Pointlog:
     def __init__(self, ctx: discord.ApplicationContext):
-        self.Smartlog: dict = {}
+        self.Pointlog: dict = {}
         self.Logger: int = None
         self.Key: str = None
         self.Message: int = None
@@ -55,7 +55,7 @@ class Smartlog:
         self.Embed: discord.Embed = discord.Embed(
             color=0x0452cf
         )
-        self.Embed.set_author(name="United Federation of Planets Smartlog", icon_url=ctx.guild.icon.url)
+        self.Embed.set_author(name="United Federation of Planets Pointlog", icon_url=ctx.guild.icon.url)
 
     def Log(self, Logger: int = None, MessageID: int = None) -> None:
         Key = self.Key or GenerateID()
@@ -64,42 +64,42 @@ class Smartlog:
         self.Logger = self.Logger or Logger
 
         WriteKey(self.Key, {
-            "Log": self.Smartlog,
+            "Log": self.Pointlog,
             "Logger": self.Logger,
             "Message": self.Message or MessageID
         })
 
-        self.Embed.set_footer(text="Smartlog ID: {}".format(self.Key))
+        self.Embed.set_footer(text="Pointlog ID: {}".format(self.Key))
         self.Embed.timestamp = datetime.datetime.now()
 
     def UpdateEmbed(self):
         self.Embed.clear_fields()
 
-        for Point, Users in deepcopy(self.Smartlog).items():
+        for Point, Users in deepcopy(self.Pointlog).items():
             if not Users:
                 continue
 
             self.Embed.add_field(name="{} Point{}".format(Point, "" if Point == 1 or Point == -1 else "s"), value=", ".join(["<@{}>".format(User) for User in Users]), inline=False)
 
     @classmethod
-    def FromID(cls, ctx: discord.Interaction, SmartlogID: str):
+    def FromID(cls, ctx: discord.Interaction, PointlogID: str):
         self = cls.__new__(cls)
 
-        Smartlog = GetSmartlog(SmartlogID)
+        Pointlog = GetPointlog(PointlogID)
 
-        if not Smartlog:
+        if not Pointlog:
             return
 
-        self.Smartlog = Smartlog["Log"]
-        self.Logger = Smartlog["Logger"]
-        self.Message = Smartlog["Message"]
-        self.Key = SmartlogID
+        self.Pointlog = Pointlog["Log"]
+        self.Logger = Pointlog["Logger"]
+        self.Message = Pointlog["Message"]
+        self.Key = PointlogID
 
         self.Embed = discord.Embed(
             color=0x0452cf
         )
-        self.Embed.set_author(name="United Federation of Planets Smartlog", icon_url=ctx.guild.icon.url)
-        self.Embed.set_footer(text="Smartlog ID: {}".format(self.Key))
+        self.Embed.set_author(name="United Federation of Planets Pointlog", icon_url=ctx.guild.icon.url)
+        self.Embed.set_footer(text="Pointlog ID: {}".format(self.Key))
         self.Embed.timestamp = datetime.datetime.now()
 
 
@@ -121,18 +121,18 @@ class Smartlog:
 
         return FinalUsers
     
-    def FindUserInSmartlog(self, UserID: int, Delete: bool=False) -> int:
-        for Point, Users in deepcopy(self.Smartlog).items():
+    def FindUserInPointlog(self, UserID: int, Delete: bool=False) -> int:
+        for Point, Users in deepcopy(self.Pointlog).items():
             if UserID in Users:
-                self.Smartlog[Point].remove(UserID)
+                self.Pointlog[Point].remove(UserID)
 
                 return int(Point)
             
         return 0
     
-    def SmartlogFromMessage(self, Message: str, Guild: discord.Guild, Overwrite: bool) -> None:
+    def PointlogFromMessage(self, Message: str, Guild: discord.Guild, Overwrite: bool) -> None:
         if Overwrite:
-            self.Smartlog = {}
+            self.Pointlog = {}
 
         MessageLines = Message.split("\n")
 
@@ -159,19 +159,19 @@ class Smartlog:
                     else:
                         continue
 
-                Point = self.FindUserInSmartlog(int(UserID), True) + Point
+                Point = self.FindUserInPointlog(int(UserID), True) + Point
                     
-                if not str(Point) in self.Smartlog:
-                    self.Smartlog[str(Point)] = []
+                if not str(Point) in self.Pointlog:
+                    self.Pointlog[str(Point)] = []
 
-                self.Smartlog[str(Point)].append(int(UserID))
+                self.Pointlog[str(Point)].append(int(UserID))
 
     def ToView(self) -> discord.ui.View:
         View = discord.ui.View()
 
-        View.add_item(SmartlogButton("Approve", self.Key))
-        View.add_item(SmartlogButton("Edit", self.Key))
-        View.add_item(SmartlogButton("Void", self.Key))
+        View.add_item(PointlogButton("Approve", self.Key))
+        View.add_item(PointlogButton("Edit", self.Key))
+        View.add_item(PointlogButton("Void", self.Key))
 
         return View
 
@@ -188,7 +188,7 @@ class Smartlog:
         Message = await Channel.fetch_message(self.Message)
         await Message.delete()
 
-        for Point, Users in deepcopy(self.Smartlog).items():
+        for Point, Users in deepcopy(self.Pointlog).items():
             Point = int(Point)
 
             for User in Users:
@@ -199,26 +199,26 @@ class Smartlog:
 
         WriteJson(Data)
 
-    async def CreateSmartlogDialog(self, bot: discord.Bot, ctx: discord.ApplicationContext) -> bool:
-        SmartlogMessage = await bot.wait_for("message", check=lambda message: message.author == ctx.author and message.channel == ctx.channel and message.guild == ctx.guild)
+    async def CreatePointlogDialog(self, bot: discord.Bot, ctx: discord.ApplicationContext) -> bool:
+        PointlogMessage = await bot.wait_for("message", check=lambda message: message.author == ctx.author and message.channel == ctx.channel and message.guild == ctx.guild)
 
-        if SmartlogMessage.content.lower() == "done":
+        if PointlogMessage.content.lower() == "done":
             return True
 
-        self.SmartlogFromMessage(SmartlogMessage.content, ctx.guild)
+        self.PointlogFromMessage(PointlogMessage.content, ctx.guild)
 
         return False
     
-    async def EditSmartlogDialog(self, Bot: discord.Bot, Interaction: discord.Interaction) -> bool:
-        SmartlogMessage = await Bot.wait_for("message", check=lambda message: message.author == Interaction.user and message.channel == Interaction.channel and message.guild == Interaction.guild)
-        await SmartlogMessage.delete()
+    async def EditPointlogDialog(self, Bot: discord.Bot, Interaction: discord.Interaction) -> bool:
+        PointlogMessage = await Bot.wait_for("message", check=lambda message: message.author == Interaction.user and message.channel == Interaction.channel and message.guild == Interaction.guild)
+        await PointlogMessage.delete()
 
-        if SmartlogMessage.content.lower() == "done":
+        if PointlogMessage.content.lower() == "done":
             return True
         
         Actions = ["removeuser", "removepoint", "addmany"]
 
-        ParsedAction = SmartlogMessage.content.split(": ")
+        ParsedAction = PointlogMessage.content.split(": ")
 
         if len(ParsedAction) != 2:
             return False
@@ -233,23 +233,23 @@ class Smartlog:
             UserList = self.ProcessUsers(Argument)
 
             for User in UserList:
-                for Point, Users in self.Smartlog.items():
+                for Point, Users in self.Pointlog.items():
                     if not User in Users:
                         continue
 
                     Users.remove(User)
         elif Action == "addmany":
-            self.SmartlogFromMessage(Argument, Interaction.guild)
+            self.PointlogFromMessage(Argument, Interaction.guild)
         elif Action == "removepoint":
-            self.Smartlog.pop(Argument)
+            self.Pointlog.pop(Argument)
 
         return False
     
-class SmartlogModal(discord.ui.Modal):
-    def __init__(self, Log: Smartlog, Overwrite: bool):
-        super().__init__(title="Smartlog Input", timeout=None)
+class PointlogModal(discord.ui.Modal):
+    def __init__(self, Log: Pointlog, Overwrite: bool):
+        super().__init__(title="Pointlog Input", timeout=None)
 
-        self.Smartlog: Smartlog = Log
+        self.Pointlog: Pointlog = Log
         self.Overwrite: bool = Overwrite
 
         self.add_item(discord.ui.InputText(
@@ -263,27 +263,27 @@ class SmartlogModal(discord.ui.Modal):
 
         TextBox: discord.ui.InputText = self.children[0]
 
-        self.Smartlog.SmartlogFromMessage(TextBox.value, interaction.guild, self.Overwrite)
-        self.Smartlog.UpdateEmbed()
+        self.Pointlog.PointlogFromMessage(TextBox.value, interaction.guild, self.Overwrite)
+        self.Pointlog.UpdateEmbed()
         
-        await interaction.edit_original_response(embed=self.Smartlog.Embed)
+        await interaction.edit_original_response(embed=self.Pointlog.Embed)
 
         return await super().callback(interaction)
     
-class SmartlogView(discord.ui.View):
-    def __init__(self, Log: Smartlog):
+class PointlogView(discord.ui.View):
+    def __init__(self, Log: Pointlog):
         super().__init__(timeout=None)
 
-        self.Smartlog: Smartlog = Log
+        self.Pointlog: Pointlog = Log
         self.Cancelled: bool = False
 
     @discord.ui.button(label="Add Data", style=discord.ButtonStyle.gray)
     async def AddData(self, button: discord.ui.Button, interaction: discord.Interaction):
-        await interaction.response.send_modal(SmartlogModal(self.Smartlog, False))
+        await interaction.response.send_modal(PointlogModal(self.Pointlog, False))
 
     @discord.ui.button(label="Overwrite Data", style=discord.ButtonStyle.gray)
     async def OverwriteData(self, button: discord.ui.Button, interaction: discord.Interaction):
-        await interaction.response.send_modal(SmartlogModal(self.Smartlog, True))
+        await interaction.response.send_modal(PointlogModal(self.Pointlog, True))
 
     @discord.ui.button(label="Cancel Log", style=discord.ButtonStyle.danger, row=1)
     async def CancelLog(self, button: discord.ui.Button, interaction: discord.Interaction):

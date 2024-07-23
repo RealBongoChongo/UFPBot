@@ -19,7 +19,7 @@ from utility import ranks
 from utility import warns
 from utility import commandingOfficers
 from utility import eventhandler
-from utility import smartlog
+from utility import pointlog
 from utility import points
 from copy import deepcopy
 from textwrap import wrap
@@ -194,8 +194,8 @@ def CreateEventEmbed(Guild: discord.Guild, EventType: str, EventTimestamp: int, 
     return StarterEmbed
 
 class EventButton(discord.ui.Button):
-    def __init__(self, Label: str, SmartlogID: str):
-        super().__init__(label=Label, custom_id="{} | {}".format(Label, SmartlogID), style=discord.ButtonStyle.gray)
+    def __init__(self, Label: str, PointlogID: str):
+        super().__init__(label=Label, custom_id="{} | {}".format(Label, PointlogID), style=discord.ButtonStyle.gray)
 
 @bot.command(name="create-event", description="Create a classified event for Commissioned Personnel (TIME MUST BE IN UTC)", guild_ids=[878364507385233480])
 @discord.commands.option("eventtype", choices=["Training", "Patrol", "Workshop", "Testing", "Battle"])
@@ -388,7 +388,7 @@ async def PointChecker():
 
 @bot.command(name="my-points", description="Find your points", guild_ids=[878364507385233480])
 async def MyPoints(ctx: discord.ApplicationContext):
-    Logs = smartlog.ReadJson()
+    Logs = pointlog.ReadJson()
 
     Pending = 0
 
@@ -412,7 +412,7 @@ async def MyPoints(ctx: discord.ApplicationContext):
 
 @bot.command(name="get-points", description="Find someone else's points", guild_ids=[878364507385233480])
 async def GetPoints(ctx: discord.ApplicationContext, member: discord.Member):
-    Logs = smartlog.ReadJson()
+    Logs = pointlog.ReadJson()
 
     Pending = 0
 
@@ -436,7 +436,7 @@ async def GetPoints(ctx: discord.ApplicationContext, member: discord.Member):
 
 @bot.command(name="my-logs", description="View the IDs of the logs that you've sent in", guild_ids=[878364507385233480])
 async def ViewMyLogs(ctx: discord.ApplicationContext):
-    Logs = smartlog.ReadJson()
+    Logs = pointlog.ReadJson()
     OwnedLogs = []
 
     Pending = 0
@@ -455,7 +455,7 @@ async def ViewMyLogs(ctx: discord.ApplicationContext):
 
 @bot.command(name="all-logs", description="View the IDs of the logs that are pending", guild_ids=[878364507385233480])
 async def ViewPendingLogs(ctx: discord.ApplicationContext):
-    Logs = smartlog.ReadJson()
+    Logs = pointlog.ReadJson()
     FormattedLogs = []
 
     for LogID, Log in deepcopy(Logs).items():
@@ -469,15 +469,15 @@ async def ViewPendingLogs(ctx: discord.ApplicationContext):
 
     await ctx.respond(embed=Embed)
 
-@bot.command(name="view-log", description="View a smartlog", guild_ids=[878364507385233480])
+@bot.command(name="view-log", description="View a pointlog", guild_ids=[878364507385233480])
 async def ViewLog(ctx: discord.ApplicationContext, logid: str):
-    Smartlog = smartlog.Smartlog.FromID(logid)
-    if not Smartlog:
+    Pointlog = pointlog.Pointlog.FromID(logid)
+    if not Pointlog:
         return await ctx.respond("Log does not exist")
 
-    Smartlog.UpdateEmbed()
+    Pointlog.UpdateEmbed()
 
-    await ctx.respond(embed=Smartlog.Embed)
+    await ctx.respond(embed=Pointlog.Embed)
 
 @bot.command(name="ranklock", description="Ranklock someone", guild_ids=[878364507385233480])
 async def RanklockUser(ctx: discord.ApplicationContext, member: discord.Member, setting: bool):
@@ -539,28 +539,28 @@ async def ClearConsensus(ctx: discord.ApplicationContext, member: discord.Member
 
     await ctx.respond("Cleared consensus.")
 
-@bot.command(name="create-smartlog", description="Create a smartlog", guild_ids=[878364507385233480])
-async def CreateSmartlog(ctx: discord.ApplicationContext):
+@bot.command(name="create-pointlog", description="Create a pointlog", guild_ids=[878364507385233480])
+async def CreatePointlog(ctx: discord.ApplicationContext):
     await ctx.defer()
 
-    SmartlogClass = smartlog.Smartlog(ctx)
-    SmartlogView = smartlog.SmartlogView(SmartlogClass)
+    PointlogClass = pointlog.Pointlog(ctx)
+    PointlogView = pointlog.PointlogView(PointlogClass)
 
-    await ctx.respond(embed=SmartlogClass.Embed, view=SmartlogView)
+    await ctx.respond(embed=PointlogClass.Embed, view=PointlogView)
 
-    await SmartlogView.wait()
+    await PointlogView.wait()
 
-    if SmartlogView.Cancelled:
-        return await ctx.respond("Smartlog cancelled.")
+    if PointlogView.Cancelled:
+        return await ctx.respond("Pointlog cancelled.")
 
-    SmartlogChannel = ctx.guild.get_channel(1263658686019141682)
+    PointlogChannel = ctx.guild.get_channel(1263658686019141682)
 
-    msg = await SmartlogChannel.send("**Smartlog from {}**".format(ctx.author))
+    msg = await PointlogChannel.send("**Pointlog from {}**".format(ctx.author))
 
-    SmartlogClass.Log(ctx.author.id, msg.id)
-    await msg.edit(embed=SmartlogClass.Embed, view=SmartlogClass.ToView())
+    PointlogClass.Log(ctx.author.id, msg.id)
+    await msg.edit(embed=PointlogClass.Embed, view=PointlogClass.ToView())
 
-    await ctx.respond("Smartlog awaiting processing...".format(SmartlogClass.Key))
+    await ctx.respond("Pointlog awaiting processing...".format(PointlogClass.Key))
 
 @bot.command(name="editmessage", description="Edit a message that UFP Bot has in a channel", guild_ids=[878364507385233480])
 async def editmessage(ctx, channel: discord.TextChannel, content: discord.Attachment, borders: bool=False, charterimage: bool = False):
@@ -2069,28 +2069,28 @@ async def on_interaction(Interaction: discord.Interaction):
                 if not Interaction.user.get_role(1012070243004321802):
                     return await Interaction.respond(content="You aren't a Senior Officer", ephemeral=True)
                 
-                Smartlog = smartlog.Smartlog.FromID(Interaction, LogID)
-                if not Smartlog:
-                    return await Interaction.respond(content="Smartlog no longer exists.", ephemeral=True)
+                Pointlog = pointlog.Pointlog.FromID(Interaction, LogID)
+                if not Pointlog:
+                    return await Interaction.respond(content="Pointlog no longer exists.", ephemeral=True)
 
                 if Action == "Approve":
-                    await Smartlog.Approve(Interaction.channel)
+                    await Pointlog.Approve(Interaction.channel)
                 elif Action == "Edit":
                     await Interaction.respond(content="Begin stating your edits.\n\nCommands:\n    removeuser: <userid or mention>\n    removepoint: <point amount>\n    addmany: <point amount> - <users>", ephemeral=True)
                     
                     EditSuccess = False
 
                     while not EditSuccess:
-                        EditSuccess = await Smartlog.EditSmartlogDialog(bot, Interaction)
+                        EditSuccess = await Pointlog.EditPointlogDialog(bot, Interaction)
 
-                        Smartlog.UpdateEmbed()
+                        Pointlog.UpdateEmbed()
 
-                        await Interaction.edit_original_message(embed=Smartlog.Embed)
+                        await Interaction.edit_original_message(embed=Pointlog.Embed)
 
-                    Smartlog.Log()
+                    Pointlog.Log()
                     await Interaction.respond(content="Successfully edited.", ephemeral=True)
                 elif Action == "Void":
-                    await Smartlog.Delete(Interaction.channel)
+                    await Pointlog.Delete(Interaction.channel)
             elif Action in ["Promote", "Minimum", "Demote"]:
                 if not Interaction.user.get_role(1012070243004321802):
                     return await Interaction.respond(content="You aren't a Senior Officer", ephemeral=True)
