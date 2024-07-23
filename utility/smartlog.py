@@ -143,6 +143,8 @@ class Smartlog:
             except:
                 continue
 
+            Point = self.FindUserInSmartlog(int(UserID), True) + Point
+
             Users = ParsedLine[1].split(", ")
 
             if not str(Point) in self.Smartlog:
@@ -158,8 +160,6 @@ class Smartlog:
                         UserID = Member.id
                     else:
                         continue
-                
-                Point = self.FindUserInSmartlog(int(UserID), True) + Point
 
                 self.Smartlog[str(Point)].append(int(UserID))
 
@@ -256,6 +256,8 @@ class SmartlogModal(discord.ui.Modal):
         ))
 
     async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+
         TextBox: discord.ui.InputText = self.children[0]
 
         self.Smartlog.SmartlogFromMessage(TextBox.value, interaction.guild, self.Overwrite)
