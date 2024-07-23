@@ -1,14 +1,26 @@
 import discord
-from discord.ext import commands, tasks
-
 import os
+from discord.ext import commands, tasks
 import sys
 import ast
 import traceback
 import datetime
 from threading import Thread
 import webserver
-
+from utility import jsonhandler
+from utility import blackjack
+from utility import ships
+from utility import upgrades
+from utility.paginator import Pag
+from utility import srads
+from utility import relations
+from utility import offduty
+from utility import ranks
+from utility import warns
+from utility import commandingOfficers
+from utility import eventhandler
+from utility import smartlog
+from utility import points
 from copy import deepcopy
 from textwrap import wrap
 import requests
@@ -22,24 +34,6 @@ import plotly.express as px
 import pandas as pd
 import openai
 import argparse
-import logging
-
-from utility import jsonhandler
-from utility import blackjack
-from utility import ships
-from utility import upgrades
-from utility.paginator import Pag
-from utility import srads
-from utility import relations
-from utility import offduty
-from utility import ranks
-from utility import warns
-from utility import commandingOfficers
-from utility import eventhandler
-from utility import pointlog
-from utility import points
-from utility import embeds
-
 parser = argparse.ArgumentParser()
 
 parser.add_argument("-d", "--development", help="Runs outside raspberry pi")
@@ -69,6 +63,8 @@ colors = {
 }
 
 bot = discord.Bot(intents=discord.Intents.all())
+latinumTypes = ["Bars", "Strips", "Slips"]
+latinumTypesLower = ["bars", "strips", "slips"]
 
 time_regex = re.compile("(?:(\d{1,5})(h|s|m|d||))+?")
 time_dict = {"h": 3600, "s": 1, "m": 60, "d": 86400,"":1}
@@ -88,6 +84,24 @@ class TimeConverter(commands.Converter):
             except ValueError:
                 raise commands.BadArgument(f"{key} is not a number!")
         return round(time)
+
+exchanges = {
+    "bars": {
+        "strips": 20,
+        "slips": 2000
+    },
+    "strips": {
+        "bars": 1/20,
+        "slips": 100
+    },
+    "slips": {
+        "bars": 1/2000,
+        "strips": 1/100
+    }
+}
+
+async def getLatinumTypes(ctx):
+    return [latinumType for latinumType in latinumTypes if latinumType.lower().startswith(ctx.value.lower())]
 
 async def getAllies(ctx):
     return [ally for ally in relations.getAllies() if ally.startswith(ctx.value)]
@@ -154,6 +168,399 @@ def wrapString(string):
         print(len(item))
 
     return final
+
+def CreateEventEmbed(Guild: discord.Guild, EventType: str, EventTimestamp: int, EventHost: discord.Member, EventNotes: str, EventDuration: int, EventID: str) -> discord.Embed:
+    Colors = {
+        "Training": 0x0452cf,
+        "Testing": 0x04cf66,
+        "Patrol": 0xf5d502,
+        "Workshop": 0x6f02f5,
+        "Battle": 0xf53b02
+    }
+
+    StarterEmbed = discord.Embed(
+        timestamp=datetime.datetime.now(),
+        color=Colors[EventType]
+    )
+    StarterEmbed.add_field(name="Time", value="**In UTC**: {}\n**Relative**: <t:{}:R>".format(datetime.datetime.utcfromtimestamp(EventTimestamp), EventTimestamp), inline=False)
+    StarterEmbed.add_field(name="Event Duration", value="{} Minutes".format(EventDuration), inline=False)
+    StarterEmbed.add_field(name="Host", value=str(EventHost), inline=False)
+    StarterEmbed.add_field(name="Notes", value=EventNotes, inline=False)
+    StarterEmbed.add_field(name="Event Type", value=EventType, inline=False)
+    StarterEmbed.add_field(name="Event ID", value=EventID, inline=False)
+    StarterEmbed.set_footer(text="Secure Event- Do not share outside of UFP")
+    StarterEmbed.set_author(name="United Federation of Planets", icon_url=Guild.icon.url)
+
+    return StarterEmbed
+
+class EventButton(discord.ui.Button):
+    def __init__(self, Label: str, SmartlogID: str):
+        super().__init__(label=Label, custom_id="{} | {}".format(Label, SmartlogID), style=discord.ButtonStyle.gray)
+
+@bot.command(name="create-event", description="Create a classified event for Commissioned Personnel (TIME MUST BE IN UTC)", guild_ids=[878364507385233480])
+@discord.commands.option("eventtype", choices=["Training", "Patrol", "Workshop", "Testing", "Battle"])
+@discord.commands.option("eventminute", choices=[0, 15, 30, 45])
+@discord.commands.option("eventduration", choices=[15, 30, 45, 60, 75, 90, 105, 120])
+async def createEvent(ctx: discord.ApplicationContext, eventtype, eventnotes: str, eventduration: int, eventday: int=None, eventmonth: int=None, eventyear: int=None, eventhour: int=None, eventminute: int=None):
+    await ctx.defer()
+
+    msg = await ctx.respond("Scheduling Event...")
+
+    nowUTCTime = datetime.datetime.now()
+    EventTimestamp = datetime.datetime(
+        year=eventyear or nowUTCTime.year, 
+        month=eventmonth or nowUTCTime.month, 
+        day=eventday or nowUTCTime.day,
+        hour=eventhour or nowUTCTime.hour,
+        minute=eventminute or 0
+    )
+
+    EventTimestamp -= datetime.timedelta(hours=5)
+
+    if EventTimestamp < nowUTCTime and EventTimestamp + datetime.timedelta(hours=12) >= nowUTCTime:
+        EventTimestamp += datetime.timedelta(hours=12)
+    if EventTimestamp < nowUTCTime and EventTimestamp + datetime.timedelta(hours=12) < nowUTCTime:
+        return await ctx.respond("Event time has already passed")
+
+    EventID = eventhandler.CreateEvent(eventtype, int(EventTimestamp.timestamp()), ctx.author, eventnotes, eventduration)
+
+    await msg.edit("Creating Embed...")
+
+    events = await ctx.guild.fetch_channel(1263544155691286639)
+
+    Embed = CreateEventEmbed(ctx.guild, eventtype, int(EventTimestamp.timestamp()), ctx.author, eventnotes, eventduration, EventID)
+
+    await msg.edit("Sending Event Embed Into <#{}>...".format(events.id))
+
+    View = discord.ui.View()
+    View.add_item(EventButton("View Event", EventID))
+
+    await events.send("**A new event has been scheduled.**", view=View)
+
+    await msg.edit("Successfully scheduled the event.")
+
+@bot.command(name="get-event", description="Retrive an event created", guild_ids=[878364507385233480])
+async def GetEvent(ctx: discord.ApplicationContext, eventid: str):
+    Event = eventhandler.GetEvent(eventid)
+    if not Event:
+        return await ctx.respond("Event not found.")
+
+    await ctx.respond(embed=CreateEventEmbed(ctx.guild, Event["EventType"], Event["EventTimestamp"], ctx.guild.get_member(Event["EventHost"]), Event["EventNotes"], Event["EventDuration"], eventid))
+
+@bot.command(name="edit-event", description="Retrive an event created", guild_ids=[878364507385233480])
+async def GetEvent(ctx: discord.ApplicationContext, eventid: str, eventnotes: str=None, eventduration: int=None, eventday: int=None, eventmonth: int=None, eventyear: int=None, eventhour: int=None, eventminute: int=None):
+    Event = eventhandler.GetEvent(eventid)
+    if not Event:
+        return await ctx.respond("Event not found.")
+    
+    View = discord.ui.View()
+    View.add_item(EventButton("View Event", eventid))
+
+    nowUTCTime = datetime.datetime.now()
+    TimeFromTimestamp = datetime.datetime.fromtimestamp(Event["EventTimestamp"])
+    
+    EventTimestamp = datetime.datetime(
+        year=eventyear or TimeFromTimestamp.year, 
+        month=eventmonth or TimeFromTimestamp.month, 
+        day=eventday or TimeFromTimestamp.day,
+        hour=eventhour or TimeFromTimestamp.hour,
+        minute=eventminute or TimeFromTimestamp.minute
+    )
+
+    if eventhour:
+        EventTimestamp -= datetime.timedelta(hours=5)
+
+    if EventTimestamp < nowUTCTime and EventTimestamp + datetime.timedelta(hours=12) >= nowUTCTime:
+        EventTimestamp += datetime.timedelta(hours=12)
+    if EventTimestamp < nowUTCTime and EventTimestamp + datetime.timedelta(hours=12) < nowUTCTime:
+        return await ctx.respond("Event time has already passed")
+    
+    Event = eventhandler.EditEvent(eventid, EventTimestamp=int(EventTimestamp.timestamp()), EventNotes=eventnotes, EventDuration=eventduration)
+
+    events = await ctx.guild.fetch_channel(1263544155691286639)
+    await events.send("**An event has been updated**", view=View)
+
+    await ctx.respond("Event updated.")
+
+@bot.command(name="delete-event", description="Delete an event created", guild_ids=[878364507385233480])
+async def DeleteEvent(ctx: discord.ApplicationContext, eventid: str):
+    Event = eventhandler.GetEvent(eventid)
+    if not Event:
+        return await ctx.respond("Event not found.")
+    
+    eventhandler.DeleteEvent(eventid)
+
+    await ctx.respond("Deleted")
+
+@tasks.loop(minutes=1)
+async def EventReminder():
+    UFP = bot.get_guild(878364507385233480)
+    EventChannel = UFP.get_channel(1263544155691286639)
+
+    Events = eventhandler.ReadJson()
+    TimestampNow = datetime.datetime.now().timestamp()
+
+    for EventID, EventData in Events.items():
+        if EventData["EventTimestamp"] - 3600 > TimestampNow:
+            continue
+
+        if EventData["EventTimestamp"] + (EventData["EventDuration"] * 60) <= TimestampNow:
+            eventhandler.DeleteEvent(EventID)
+            continue
+
+        if not EventData["Reminded"]:
+            EventData["Reminded"] = True
+
+            EventEmbed = CreateEventEmbed(UFP, EventData["EventType"], EventData["EventTimestamp"], UFP.get_member(EventData["EventHost"]), EventData["EventNotes"], EventData["EventDuration"], EventID)
+
+            await EventChannel.send("<@&954234917846388826> **This event starts in less than an hour.**", embed=EventEmbed)
+
+            eventhandler.EditEvent(EventID, EventData)
+
+        if EventData["EventTimestamp"] < TimestampNow and not EventData["Announced"]:
+            EventData["Announced"] = True
+
+            EventEmbed = CreateEventEmbed(UFP, EventData["EventType"], EventData["EventTimestamp"], UFP.get_member(EventData["EventHost"]), EventData["EventNotes"], EventData["EventDuration"], EventID)
+
+            await EventChannel.send("<@&954234917846388826> **This event has started.**", embed=EventEmbed)
+
+            eventhandler.EditEvent(EventID, EventData)
+
+@tasks.loop(minutes=10)
+async def PointChecker():
+    UFP = bot.get_guild(878364507385233480)
+    RankUpdate = UFP.get_channel(1264001160172539905)
+
+    Points = points.ReadJson()
+
+    async for Member in UFP.fetch_members(limit=1000):
+        UserData = points.GetUser(Member.id)
+    
+        if UserData["Ranklocked"]:
+            continue
+
+        if UserData["WaitingForRankChange"]:
+            continue
+    
+        if not ranks.getRank(Member):
+            continue
+
+        Rank = ranks.getRank(Member).id
+        RankAbove = ranks.GetRankAbove(Member)
+
+        PointRankAbove = ranks.requirements[str(RankAbove)]
+        PointRankBelow = ranks.requirements[str(Rank)]
+
+        if PointRankAbove and UserData["Points"] >= PointRankAbove:
+            view = discord.ui.View()
+            view.add_item(points.PointButton("Promote", str(Member.id)))
+            view.add_item(points.PointButton("Minimum", str(Member.id)))
+
+            Embed = discord.Embed(
+                color=0x0452cf
+            )
+            Embed.set_author(name="United Federation of Planets", icon_url=UFP.icon.url)
+
+            Embed.add_field(name="Member", value=str(Member), inline=False)
+            Embed.add_field(name="Current Points", value=UserData["Points"], inline=False)
+            Embed.add_field(name="Action", value="Promotion to <@&{}>".format(ranks.GetMinimumRank(UserData["Points"])), inline=False)
+        elif PointRankBelow and UserData["Points"] < PointRankBelow:
+            view = discord.ui.View()
+            view.add_item(points.PointButton("Demote", str(Member.id)))
+            view.add_item(points.PointButton("Minimum", str(Member.id)))
+
+            Embed = discord.Embed(
+                color=0x0452cf
+            )
+            Embed.set_author(name="United Federation of Planets", icon_url=UFP.icon.url)
+
+            Embed.add_field(name="Member", value=str(Member), inline=False)
+            Embed.add_field(name="Current Points", value=UserData["Points"], inline=False)
+            Embed.add_field(name="Action", value="Demotion to <@&{}>".format(str(ranks.GetMinimumRank(UserData["Points"]))), inline=False)
+        else:
+            continue
+
+        await RankUpdate.send(embed=Embed, view=view)
+
+        UserData["WaitingForRankChange"] = True
+        points.WriteKey(str(Member.id), UserData)
+
+
+@bot.command(name="my-points", description="Find your points", guild_ids=[878364507385233480])
+async def MyPoints(ctx: discord.ApplicationContext):
+    Logs = smartlog.ReadJson()
+
+    Pending = 0
+
+    for LogID, Log in deepcopy(Logs).items():
+        for Point, Users in Log["Log"].items():
+            Point = int(Point)
+
+            for User in Users:
+                if User == ctx.author.id:
+                    Pending += Point
+
+    UserData = points.GetUser(ctx.author.id)
+
+    Embed = discord.Embed(
+        color=0x0452cf
+    )
+    Embed.set_author(name="United Federation of Planets", icon_url=ctx.guild.icon.url)
+    Embed.add_field(name="Points", value="{} Points{}{}".format(UserData["Points"], f" ({Pending} Pending)" if Pending else "", "\n    Ranklocked" if UserData["Ranklocked"] else ""))
+
+    await ctx.respond(embed=Embed)
+
+@bot.command(name="get-points", description="Find someone else's points", guild_ids=[878364507385233480])
+async def GetPoints(ctx: discord.ApplicationContext, member: discord.Member):
+    Logs = smartlog.ReadJson()
+
+    Pending = 0
+
+    for LogID, Log in deepcopy(Logs).items():
+        for Point, Users in Log["Log"].items():
+            Point = int(Point)
+
+            for User in Users:
+                if User == member.id:
+                    Pending += Point
+
+    UserData = points.GetUser(member.id)
+
+    Embed = discord.Embed(
+        color=0x0452cf
+    )
+    Embed.set_author(name="United Federation of Planets", icon_url=ctx.guild.icon.url)
+    Embed.add_field(name="Points", value="{} Points{}{}".format(UserData["Points"], f" ({Pending} Pending)" if Pending else "", "\n    Ranklocked" if UserData["Ranklocked"] else ""))
+
+    await ctx.respond(embed=Embed)
+
+@bot.command(name="my-logs", description="View the IDs of the logs that you've sent in", guild_ids=[878364507385233480])
+async def ViewMyLogs(ctx: discord.ApplicationContext):
+    Logs = smartlog.ReadJson()
+    OwnedLogs = []
+
+    Pending = 0
+
+    for LogID, Log in deepcopy(Logs).items():
+        if Log["Logger"] == ctx.author.id:
+            OwnedLogs.append("`" + LogID + "`")
+
+    Embed = discord.Embed(
+        description="{}".format("\n".join(OwnedLogs)),
+        color=0x0452cf
+    )
+    Embed.set_author(name="United Federation of Planets", icon_url=ctx.guild.icon.url)
+
+    await ctx.respond(embed=Embed)
+
+@bot.command(name="all-logs", description="View the IDs of the logs that are pending", guild_ids=[878364507385233480])
+async def ViewPendingLogs(ctx: discord.ApplicationContext):
+    Logs = smartlog.ReadJson()
+    FormattedLogs = []
+
+    for LogID, Log in deepcopy(Logs).items():
+        FormattedLogs.append("`{}` - <@{}>".format(LogID, Log["Logger"]))
+
+    Embed = discord.Embed(
+        description="{}".format("\n".join(FormattedLogs)),
+        color=0x0452cf
+    )
+    Embed.set_author(name="United Federation of Planets", icon_url=ctx.guild.icon.url)
+
+    await ctx.respond(embed=Embed)
+
+@bot.command(name="view-log", description="View a smartlog", guild_ids=[878364507385233480])
+async def ViewLog(ctx: discord.ApplicationContext, logid: str):
+    Smartlog = smartlog.Smartlog.FromID(logid)
+    if not Smartlog:
+        return await ctx.respond("Log does not exist")
+
+    Smartlog.UpdateEmbed()
+
+    await ctx.respond(embed=Smartlog.Embed)
+
+@bot.command(name="ranklock", description="Ranklock someone", guild_ids=[878364507385233480])
+async def RanklockUser(ctx: discord.ApplicationContext, member: discord.Member, setting: bool):
+    UserData = points.GetUser(member.id)
+
+    UserData["Ranklocked"] = setting
+
+    points.WriteKey(member.id, UserData)
+
+    await ctx.respond("User ranklocked.")
+
+@bot.command(name="view-consensus", description="View someone's consensus", guild_ids=[878364507385233480])
+async def ViewConsensus(ctx: discord.ApplicationContext, member: discord.Member):
+    UserData = points.GetUser(member.id)
+
+    if not UserData["Consensus"]:
+        return await ctx.respond("User's consensus is empty")
+
+    Embed = discord.Embed(
+        description="\n".join(["{}: `{}` - <@{}>".format(UserData["Consensus"].index(Note), Note["Note"], Note["Creator"]) for Note in UserData["Consensus"]]),
+        color=0x0452cf
+    )
+    Embed.set_author(name="United Federation of Planets", icon_url=ctx.guild.icon.url)
+
+    await ctx.respond(embed=Embed)
+
+@bot.command(name="add-consensus", description="Add to someone's consensus", guild_ids=[878364507385233480])
+async def AddConsensus(ctx: discord.ApplicationContext, member: discord.Member, note: str):
+    UserData = points.GetUser(member.id)
+
+    UserData["Consensus"].append({
+        "Note": note,
+        "Creator": str(ctx.author.id)
+    })
+
+    points.WriteKey(member.id, UserData)
+
+    await ctx.respond("Added to consensus.")
+
+@bot.command(name="remove-consensus", description="Remove an item from someone's consensus", guild_ids=[878364507385233480])
+async def RemoveConsensus(ctx: discord.ApplicationContext, member: discord.Member, position: int):
+    UserData = points.GetUser(member.id)
+
+    Item = UserData["Consensus"][position]
+
+    UserData["Consensus"].remove(Item)
+
+    points.WriteKey(member.id, UserData)
+
+    await ctx.respond("Removed item from consensus.")
+
+@bot.command(name="clear-consensus", description="Clear someone's consensus", guild_ids=[878364507385233480])
+async def ClearConsensus(ctx: discord.ApplicationContext, member: discord.Member):
+    UserData = points.GetUser(member.id)
+
+    UserData["Consensus"] = []
+
+    points.WriteKey(member.id, UserData)
+
+    await ctx.respond("Cleared consensus.")
+
+@bot.command(name="create-smartlog", description="Create a smartlog", guild_ids=[878364507385233480])
+async def CreateSmartlog(ctx: discord.ApplicationContext):
+    await ctx.defer()
+
+    SmartlogClass = smartlog.Smartlog(ctx)
+    SmartlogView = smartlog.SmartlogView(SmartlogClass)
+
+    await ctx.respond(embed=SmartlogClass.Embed, view=SmartlogView)
+
+    await SmartlogView.wait()
+
+    if SmartlogView.Cancelled:
+        return await ctx.respond("Smartlog cancelled.")
+
+    SmartlogChannel = ctx.guild.get_channel(1263658686019141682)
+
+    msg = await SmartlogChannel.send("**Smartlog from {}**".format(ctx.author))
+
+    SmartlogClass.Log(ctx.author.id, msg.id)
+    await msg.edit(embed=SmartlogClass.Embed, view=SmartlogClass.ToView())
+
+    await ctx.respond("Smartlog awaiting processing...".format(SmartlogClass.Key))
 
 @bot.command(name="editmessage", description="Edit a message that UFP Bot has in a channel", guild_ids=[878364507385233480])
 async def editmessage(ctx, channel: discord.TextChannel, content: discord.Attachment, borders: bool=False, charterimage: bool = False):
@@ -230,6 +637,8 @@ async def editmessage(ctx, channel: discord.TextChannel, content: discord.Attach
                         data[str(channel.id)].append(message.id)
                     if borders:
                         await channel.send(file=discord.File("LCARS_Bottom.png"))
+
+
 
     await ctx.respond("Success")
 
@@ -636,6 +1045,496 @@ async def announceEdit(ctx, messageid, message, publish:bool=False):
     else:
         await ctx.respond("You do not have atleast the rank of Captain", ephemeral=True)
 
+@bot.command(name="balance", description="Check your amoung of latinum", guild_ids=[878364507385233480])
+async def balance(ctx, member:discord.Member=None):
+    data = jsonhandler.getAccount(member or ctx.author)
+
+    embed = discord.Embed(
+        title="{}'s Balance".format(member or ctx.author),
+        description="- Latinum:\n  - Bars: {val1:,}\n  - Strips: {val2:,}\n  - Slips: {val3:,}".format(val1=data["latinum"]["bars"], val2=data["latinum"]["strips"], val3=data["latinum"]["slips"])
+    )
+
+    await ctx.respond(embed=embed)
+
+@bot.command(name="exchange", description="Exchange your latinum for different pieces of latinum", guild_ids=[878364507385233480])
+@discord.commands.option("latinumfrom", autocomplete=getLatinumTypes)
+@discord.commands.option("latinumto", autocomplete=getLatinumTypes)
+async def exchangeLatinum(ctx, latinumfrom, latinumto, amount:int=None):
+    if not ((latinumfrom.lower() in latinumTypesLower) and (latinumto.lower() in latinumTypesLower)):
+        return await ctx.respond("Invalid latinum type")
+
+    data = jsonhandler.getAccount(ctx.author)
+    amount = amount or data["latinum"][latinumfrom.lower()]
+
+    if amount <= 0:
+        return await ctx.respond("Invalid latinum amount")
+
+    if amount > data["latinum"][latinumfrom.lower()]:
+        return await ctx.respond("You do not have this much latinum")
+
+    jsonhandler.removeLatinum(ctx.author, latinumfrom.lower(), int(amount * exchanges[latinumfrom.lower()][latinumto.lower()]) * exchanges[latinumto.lower()][latinumfrom.lower()])
+    jsonhandler.addLatinum(ctx.author, latinumto.lower(), int(amount * exchanges[latinumfrom.lower()][latinumto.lower()]))
+
+    await ctx.respond("Done.")
+
+@bot.command(name="share", description="Scam people or graciously give latinum to people", guild_ids=[878364507385233480])
+@discord.commands.option("latinumtype", autocomplete=getLatinumTypes)
+async def shareLatinum(ctx, latinumtype, amount:int, member:discord.Member):
+    if not latinumtype.lower() in latinumTypesLower:
+        return await ctx.respond("Invalid latinum type")
+
+    if amount <= 0:
+        return await ctx.respond("Invalid latinum amount")
+
+    data = jsonhandler.getAccount(ctx.author)
+
+    if amount > data["latinum"][latinumtype.lower()]:
+        return await ctx.respond("You do not have this much latinum")
+
+    memberdata = jsonhandler.getAccount(member)
+
+    jsonhandler.removeLatinum(ctx.author, latinumtype.lower(), amount)
+    jsonhandler.addLatinum(member, latinumtype.lower(), amount)
+
+    await ctx.respond("Successfully transferred")
+
+@bot.command(name="leaderboard", description="Find out who is the richest in latinum", guild_ids=[878364507385233480])
+async def leaderboardLatinum(ctx):
+    networths = jsonhandler.getNetworths()
+    leaderboard = sorted(networths, key=lambda x: x["networth"], reverse=True)
+
+    em = discord.Embed(
+        title="Top 10 richest users"
+    )
+    index = 0
+    for user in leaderboard:
+        if index == 10 or index == len(leaderboard):
+            break
+        else:
+            index += 1
+            em.add_field(name=f"{index}. {await bot.fetch_user(user['member'])}", value=f"{user['networth']:,} Bars", inline=False)
+
+    await ctx.respond(embed=em)
+
+@bot.command(name="slots", description="Win some latinum", guild_ids=[878364507385233480])
+@discord.commands.option("latinumtype", autocomplete=getLatinumTypes)
+async def slotsGame(ctx, latinumtype, amount:int):
+    if not latinumtype.lower() in latinumTypesLower:
+        return await ctx.respond("Invalid latinum type")
+
+    if amount <= 0:
+        return await ctx.respond("Invalid latinum amount")
+
+    data = jsonhandler.getAccount(ctx.author)
+
+    if amount > data["latinum"][latinumtype.lower()]:
+        return await ctx.respond("You do not have this much latinum")
+
+    jsonhandler.removeLatinum(ctx.author, latinumtype.lower(), amount)
+
+    multi = 1
+
+    emojis = ["🍎", "🍋", "🍌", "🍆", "🍒", "🍇", "🍊"]
+
+    slot1 = random.choice(emojis)
+    slot2 = random.choice(emojis)
+    slot3 = random.choice(emojis)
+
+    if data["thing"] and ctx.author.id == 485513915548041239:
+        choice = random.choice([1, 2])
+
+        if choice == 1:
+            slot2 = slot1
+        elif choice == 2:
+            slot3 = slot1
+
+    embed = discord.Embed(
+        title = "Slots Game",
+        description = "{} {} {}".format(slot1, slot2, slot3),
+        color = 0xff0000
+    )
+
+    if slot1 == slot2 and slot2 == slot3 and slot1 == slot3:
+        multi = 2
+        embed.color = 0x00ff00
+    elif slot1 == slot2 and slot2 != slot3 and slot1 != slot3:
+        multi = 1.5
+        embed.color = 0x00ff00
+    elif slot1 != slot2 and slot2 == slot3 and slot1 != slot3:
+        multi = 1.5
+        embed.color = 0x00ff00
+    elif slot1 != slot2 and slot2 != slot3 and slot1 == slot3:
+        multi = 1.5
+        embed.color = 0x00ff00
+
+    if multi > 1:
+        embed.description += "\n\n**{}x** of your original bet won".format(multi)
+
+        jsonhandler.addLatinum(ctx.author, latinumtype.lower(), int(amount * (multi + 1)))
+
+    data = jsonhandler.getAccount(ctx.author)
+    
+    embed.description += "\n\nBalance:\n- Latinum:\n  - Bars: {val1:,}\n  - Strips: {val2:,}\n  - Slips: {val3:,}".format(val1=data["latinum"]["bars"], val2=data["latinum"]["strips"], val3=data["latinum"]["slips"])
+
+    await ctx.respond(embed=embed)
+
+@bot.command(name="snakeeyes", description="Win some latinum", guild_ids=[878364507385233480])
+@discord.commands.option("latinumtype", autocomplete=getLatinumTypes)
+async def snakeeyesGame(ctx, latinumtype, amount:int):
+    if not latinumtype.lower() in latinumTypesLower:
+        return await ctx.respond("Invalid latinum type")
+
+    if amount <= 0:
+        return await ctx.respond("Invalid latinum amount")
+
+    data = jsonhandler.getAccount(ctx.author)
+
+    if amount > data["latinum"][latinumtype.lower()]:
+        return await ctx.respond("You do not have this much latinum")
+
+    dice = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"]
+
+    dice1 = random.choice(dice)
+    dice2 = random.choice(dice)
+
+    jsonhandler.removeLatinum(ctx.author, latinumtype.lower(), amount)
+
+    multi = 1
+
+    embed = discord.Embed(
+        title = "Snake Eyes Game",
+        description = "**{} {}**".format(dice1, dice2),
+        color = 0xff0000
+    )
+
+    if dice1 == "⚀":
+        multi += 0.5
+        embed.color = 0x00ff00
+    if dice2 == "⚀":
+        multi += 0.5
+        embed.color = 0x00ff00
+
+    if multi > 1:
+        embed.description += "\n\n**{}x** of your original bet won".format(multi)
+
+        jsonhandler.addLatinum(ctx.author, latinumtype.lower(), int(amount * (multi + 1)))
+
+    data = jsonhandler.getAccount(ctx.author)
+    
+    embed.description += "\n\nBalance:\n- Latinum:\n  - Bars: {val1:,}\n  - Strips: {val2:,}\n  - Slips: {val3:,}".format(val1=data["latinum"]["bars"], val2=data["latinum"]["strips"], val3=data["latinum"]["slips"])
+
+    await ctx.respond(embed=embed)
+
+@bot.command(name="blackjack", description="Win some latinum", guild_ids=[878364507385233480])
+@discord.commands.option("latinumtype", autocomplete=getLatinumTypes)
+async def blackjackGame(ctx, latinumtype, amount:int):
+    if not latinumtype.lower() in latinumTypesLower:
+        return await ctx.respond("Invalid latinum type")
+
+    if amount <= 0:
+        return await ctx.respond("Invalid latinum amount")
+
+    data = jsonhandler.getAccount(ctx.author)
+
+    if amount > data["latinum"][latinumtype.lower()]:
+        return await ctx.respond("You do not have this much latinum")
+
+    jsonhandler.removeLatinum(ctx.author, latinumtype.lower(), amount)
+
+    view = blackjack.Blackjack(ctx, data)
+    embed = discord.Embed(
+        title="Blackjack Game",
+        description=""
+    )
+    embed.add_field(name="Your Cards ({})".format(blackjack.getValue(view.playerCards)), value=", ".join(view.playerCards))
+    embed.add_field(name="Bot's Cards", value=view.botCards[0] + ", " + ", ".join(["?" for i in range(len(view.botCards[1:]))]))
+
+    msg = await ctx.respond(embed=embed, view=view)
+
+    await view.wait()
+
+    embed.clear_fields()
+    embed.add_field(name="Your Cards ({})".format(blackjack.getValue(view.playerCards)), value=", ".join(view.playerCards))
+    embed.add_field(name="Bot's Cards ({})".format(blackjack.getValue(view.botCards)), value=", ".join(view.botCards))
+
+    embed.description = view.reason
+
+    if view.result:
+        embed.color = 0x00ff00
+
+        jsonhandler.addLatinum(ctx.author, latinumtype.lower(), amount * 2)
+    elif view.result == False:
+        embed.color = 0xff0000
+    elif view.result == None:
+        embed.color = 0xffff00
+
+        jsonhandler.addLatinum(ctx.author, latinumtype.lower(), amount)
+
+    data = jsonhandler.getAccount(ctx.author)
+    embed.description += "\n\nBalance:\n- Latinum:\n  - Bars: {val1:,}\n  - Strips: {val2:,}\n  - Slips: {val3:,}".format(val1=data["latinum"]["bars"], val2=data["latinum"]["strips"], val3=data["latinum"]["slips"])
+
+    await msg.edit_original_response(embed=embed, view=view)
+
+@bot.command(name="free", description="Only works if you are broke", guild_ids=[878364507385233480])
+async def freeLatinum(ctx):
+    data = jsonhandler.getAccount(ctx.author)
+
+    if data["latinum"]["bars"] == 0 and data["latinum"]["strips"] == 0 and data["latinum"]["slips"] == 0:
+        jsonhandler.addLatinum(ctx.author, "strips", 10)
+
+        await ctx.respond("You are now not broke")
+    else:
+        await ctx.respond("Bruh ur not broke")
+
+shopGroup = bot.create_group("shop", "Buy some ships or equipment")
+
+@shopGroup.command(name="ships", description="Buy some ships", guild_ids=[878364507385233480])
+async def shipShop(ctx):
+    embed = discord.Embed(
+        title="Ship Shop",
+        description=""
+    )
+    enums = {
+        "1": "Common",
+        "2": "Uncommon",
+        "3": "Rare",
+        "4": "Epic",
+        "5": "Legendary",
+        "6": "Mythic"
+    }
+
+    for item in ships.shop:
+        embed.description += '**[{}]** `{}` —— **{cost:,d}** Bars of Gold-Pressed Latinum\n- {tier}x All Stats\n\n'.format(enums[str(item["tier"])], item["name"], cost=item["cost"], tier=item["tier"])
+
+    await ctx.respond(embed=embed, view=ships.Interface(ctx))
+
+@shopGroup.command(name="equipment", description="Buy some ship equipment", guild_ids=[878364507385233480])
+async def equipmentShop(ctx):
+    embed = discord.Embed(
+        title="Ship Equipment Shop",
+        description="\n".join(upgrades.shop.keys())
+    )
+    
+    await ctx.respond(embed=embed, view=upgrades.Interface(ctx))
+
+@bot.command(name="ship", description="Look at ur ship stats", guild_ids=[878364507385233480])
+async def shipView(ctx):
+    data = jsonhandler.getAccount(ctx.author)
+
+    if not data["equipped"]:
+        return await ctx.respond("You do not have a ship equipped")
+
+    enums = {
+        "1": "Common",
+        "2": "Uncommon",
+        "3": "Rare",
+        "4": "Epic",
+        "5": "Legendary",
+        "6": "Mythic"
+    }
+
+    def getFormat(argone, argtwo, part):
+        return [data["equipped"][argone], 0 if not data["equipped"]["equipment"][argtwo] else data["equipped"]["equipment"][argtwo]["capacity"] * (data["equipped"]["tier"] if argtwo in ["sif", "sg"] else 1), "" if (not data["equipped"]["equipment"][argtwo]) or ((data["equipped"]["equipment"][argtwo]["capacity"] if argtwo not in ["sg", "sif"] else data["equipped"]["equipment"][argtwo]["capacity"] * data["equipped"]["tier"]) == data["equipped"][argone] or data["equipped"]["equipment"][argtwo]["tier"] == "MK I") else "**{} Bars of Latinum to {}**".format(int(((data["equipped"]["equipment"][argtwo]["capacity"] if argtwo not in ["sg", "sif"] else data["equipped"]["equipment"][argtwo]["capacity"] * data["equipped"]["tier"]) - data["equipped"][argone]) / (10 if argone != "deuterium" else 1)), part)]
+
+    embed = discord.Embed(
+        title=data["equipped"]["name"],
+        description="Tier: **{}**\nDeuterium: `{}/{}` {}\nHull: `{}/{}` {}\nShields: `{}/{}` {}\n\n**Shield Generators:** `{}`\n**Structural Integrity Fields:** `{}`\n**Phasers:** `{}`\n**Torpedo Launchers:** `{}`\n**Deuterium Tanks:** `{}`".format(enums[str(data["equipped"]["tier"])], getFormat("deuterium", "dt", "fill")[0], getFormat("deuterium", "dt", "fill")[1], getFormat("deuterium", "dt", "fill")[2], getFormat("hull", "sif", "repair")[0], getFormat("hull", "sif", "repair")[1], getFormat("hull", "sif", "repair")[2], getFormat("shields", "sg", "repair")[0], getFormat("shields", "sg", "repair")[1], getFormat("shields", "sg", "repair")[2], data["equipped"]["equipment"]["sg"]["tier"] if data["equipped"]["equipment"]["sg"] else None, data["equipped"]["equipment"]["sif"]["tier"] if data["equipped"]["equipment"]["sif"] else None, data["equipped"]["equipment"]["p"]["tier"] if data["equipped"]["equipment"]["p"] else None, data["equipped"]["equipment"]["tl"]["tier"] if data["equipped"]["equipment"]["tl"] else None, data["equipped"]["equipment"]["dt"]["tier"] if data["equipped"]["equipment"]["dt"] else None)
+    )
+    await ctx.respond(embed=embed)
+
+equipGroup = bot.create_group("equip", "Equip ships or equipment")
+
+@equipGroup.command(name="ship", description="Equip a ship", guild_ids=[878364507385233480])
+async def equipShip(ctx):
+    data = jsonhandler.getAccount(ctx.author)
+
+    embed = discord.Embed(
+        title="Ship Roster",
+        description=""
+    )
+    enums = {
+        "1": "Common",
+        "2": "Uncommon",
+        "3": "Rare",
+        "4": "Epic",
+        "5": "Legendary",
+        "6": "Mythic"
+    }
+
+    if data["ships"]:
+        for item in data["ships"].values():
+            embed.description += '**[{}]** `{}`\n'.format(enums[str(item["tier"])], item["name"])
+    else:
+        embed.description = "No Ships"
+
+    await ctx.respond(embed=embed, view=ships.EquipInterface(ctx) if data["ships"] else None)
+
+@equipGroup.command(name="equipment", description="Equip equipment on your ship", guild_ids=[878364507385233480])
+async def equipEquipment(ctx):
+    data = jsonhandler.getAccount(ctx.author)
+    if not data["equipped"]:
+        return await ctx.respond("You do not have a ship equipped")
+
+    embed = discord.Embed(
+        title="Ship Equipment Roster",
+        description="\n".join(upgrades.shop.keys())
+    )
+    
+    await ctx.respond(embed=embed, view=upgrades.EquipInterface(ctx))
+
+@bot.command(name="repair", description="Repair your ship", guild_ids=[878364507385233480])
+async def repairShip(ctx):
+    data = jsonhandler.getAccount(ctx.author)
+    if not data["equipped"]:
+        return await ctx.respond("You do not have a ship equipped")
+
+    totalCost = 0
+    totalCost += 0 if (not data["equipped"]["equipment"]["dt"]) or data["equipped"]["equipment"]["dt"]["tier"] == "MK I" else int((data["equipped"]["equipment"]["dt"]["capacity"] - data["equipped"]["deuterium"]))
+    totalCost += 0 if (not data["equipped"]["equipment"]["sg"]) or data["equipped"]["equipment"]["sg"]["tier"] == "MK I" else int((((data["equipped"]["equipment"]["sg"]["capacity"] * data["equipped"]["tier"]) - data["equipped"]["shields"]) / 10))
+    totalCost += 0 if (not data["equipped"]["equipment"]["sif"]) or data["equipped"]["equipment"]["sif"]["tier"] == "MK I" else int((((data["equipped"]["equipment"]["sif"]["capacity"] * data["equipped"]["tier"]) - data["equipped"]["hull"]) / 10))
+
+    if data["latinum"]["bars"] < totalCost:
+        return await ctx.respond("You need {} bars of latinum to repair your ship".format(totalCost))
+
+    jsonhandler.removeLatinum(ctx.author, "bars", totalCost)
+    jsonhandler.setShipAttribute(ctx.author, "deuterium", 0 if not data["equipped"]["equipment"]["dt"] else data["equipped"]["equipment"]["dt"]["capacity"])
+    jsonhandler.setShipAttribute(ctx.author, "shields", 0 if not data["equipped"]["equipment"]["sg"] else data["equipped"]["equipment"]["sg"]["capacity"] * data["equipped"]["tier"])
+    jsonhandler.setShipAttribute(ctx.author, "hull", 0 if not data["equipped"]["equipment"]["sif"] else data["equipped"]["equipment"]["sif"]["capacity"] * data["equipped"]["tier"])
+    await ctx.respond("Successfully repaired")
+
+@bot.command(name="autorepair", description="Setup auto-repair for after debris scrounging", guild_ids=[878364507385233480])
+async def autoRepair(ctx, setting:bool):
+    data = jsonhandler.getAccount(ctx.author)
+    jsonhandler.setSetting(ctx.author, setting)
+
+    await ctx.respond("Successfully changed setting")
+
+@bot.command(name="debris", description="Scrounge through debris", guild_ids=[878364507385233480])
+async def debris(ctx):
+    await ctx.defer()
+    data = jsonhandler.getAccount(ctx.author)
+    if not data["equipped"]:
+        return await ctx.respond("You do not have a ship equipped")
+
+    if data["equipped"]["deuterium"] == 0:
+        return await ctx.respond("Your ship has no deuterium")
+    
+    if data["equipped"]["hull"] == 0:
+        return await ctx.respond("Your ship has been destroyed")
+
+    earnings = {
+        "latinum": {
+            "bars": 0,
+            "strips": 0,
+            "slips": 0
+        }
+    }
+
+    enemyCount = 0
+
+    message = ""
+
+    for i in range(data["equipped"]["deuterium"]):
+        data["equipped"]["deuterium"] -= 1
+        roll = random.randrange(0, 100)
+        table = {
+            "MK I": 1,
+            "MK II": 2,
+            "MK III": 3,
+            "MK IV": 4,
+            "MK V": 5,
+            "MK VI": 6,
+            "MK VII": 7,
+            "MK VIII": 8,
+            "MK IX": 9,
+            "MK X": 10,
+            "MK XI": 11,
+            "MK XII": 12,
+            "MK XIII": 13,
+            "MK XIV": 14,
+            "MK XV": 15
+        }
+
+        if 0 <= roll <= 20:
+            totalDamage = (0 if not data["equipped"]["equipment"]["p"] else data["equipped"]["equipment"]["p"]["damage"]) + (0 if not data["equipped"]["equipment"]["tl"] else data["equipped"]["equipment"]["tl"]["damage"])
+            
+            enemyCount += 1
+            enemy = {
+                "shields": 200 if not data["equipped"]["equipment"]["sg"] else data["equipped"]["equipment"]["sg"]["capacity"] / (table[data["equipped"]["equipment"]["sg"]["tier"]] * 5),
+                "hull": data["equipped"]["equipment"]["sif"]["capacity"] / (table[data["equipped"]["equipment"]["sif"]["tier"]] * 5),
+                "damage": int(25 if not totalDamage else totalDamage / (((table[data["equipped"]["equipment"]["sif"]["tier"]] + table[data["equipped"]["equipment"]["sg"]["tier"]]) / 2) * (random.randrange(10, 25) / 10)))
+            }
+
+            while enemy["hull"] > 0 and data["equipped"]["hull"] > 0:
+
+                if enemy["shields"] > 0:
+                    enemy["shields"] -= totalDamage
+                else:
+                    enemy["hull"] -= totalDamage
+                
+                if enemy["hull"] > 0:
+                    if data["equipped"]["shields"] > 0:
+                        data["equipped"]["shields"] -= enemy["damage"]
+                        if data["equipped"]["shields"] < 0:
+                            data["equipped"]["shields"] = 0
+                    else:
+                        data["equipped"]["hull"] -= enemy["damage"]
+                        if data["equipped"]["hull"] < 0:
+                            data["equipped"]["hull"] = 0
+            
+            if data["equipped"]["hull"] <= 0:
+                message = "Ship has been destroyed"
+                break
+        elif 21 <= roll <= 50:
+            deuterium = table[data["equipped"]["equipment"]["dt"]["tier"]]
+
+            latinumRoll = random.randrange(0, 100)
+
+            if 0 <= latinumRoll <= 20:
+                latinumAmount = random.randrange(5, 50)
+
+                earnings["latinum"]["bars"] += int(latinumAmount * data["equipped"]["tier"] * (data["equipped"]["hull"] / (data["equipped"]["equipment"]["sif"]["capacity"])) * (1 + (deuterium / 2)))
+            elif 21 <= latinumRoll <= 50:
+                latinumAmount = random.randrange(5, 50)
+
+                earnings["latinum"]["strips"] += int(latinumAmount * data["equipped"]["tier"] * (data["equipped"]["hull"] / (data["equipped"]["equipment"]["sif"]["capacity"])) * (1 + (deuterium / 2)))
+            elif 51 <= latinumRoll <= 100:
+                latinumAmount = random.randrange(5, 500)
+
+                earnings["latinum"]["slips"] += int(latinumAmount * data["equipped"]["tier"] * (data["equipped"]["hull"] / (data["equipped"]["equipment"]["sif"]["capacity"])) * (1 + (deuterium / 2)))
+
+    jsonhandler.setShipAttribute(ctx.author, "deuterium", data["equipped"]["deuterium"])
+    jsonhandler.setShipAttribute(ctx.author, "hull", data["equipped"]["hull"])
+    jsonhandler.setShipAttribute(ctx.author, "shields", data["equipped"]["shields"])
+
+    jsonhandler.addLatinum(ctx.author, "bars", earnings["latinum"]["bars"])
+    jsonhandler.addLatinum(ctx.author, "strips", earnings["latinum"]["strips"])
+    jsonhandler.addLatinum(ctx.author, "slips", earnings["latinum"]["slips"])
+
+    repaired = False
+
+    if data["thing"]:
+        data = jsonhandler.getAccount(ctx.author)
+        if not data["equipped"]:
+            return await ctx.respond("You do not have a ship equipped")
+
+        totalCost = 0
+        totalCost += 0 if (not data["equipped"]["equipment"]["dt"]) or data["equipped"]["equipment"]["dt"]["tier"] == "MK I" else int((data["equipped"]["equipment"]["dt"]["capacity"] - data["equipped"]["deuterium"]))
+        totalCost += 0 if (not data["equipped"]["equipment"]["sg"]) or data["equipped"]["equipment"]["sg"]["tier"] == "MK I" else int((((data["equipped"]["equipment"]["sg"]["capacity"] * data["equipped"]["tier"]) - data["equipped"]["shields"]) / 10))
+        totalCost += 0 if (not data["equipped"]["equipment"]["sif"]) or data["equipped"]["equipment"]["sif"]["tier"] == "MK I" else int((((data["equipped"]["equipment"]["sif"]["capacity"] * data["equipped"]["tier"]) - data["equipped"]["hull"]) / 10))
+
+        if data["latinum"]["bars"] < totalCost:
+            await ctx.respond("You need {} bars of latinum to repair your ship".format(totalCost))
+
+        else:
+            jsonhandler.removeLatinum(ctx.author, "bars", totalCost)
+            jsonhandler.setShipAttribute(ctx.author, "deuterium", 0 if not data["equipped"]["equipment"]["dt"] else data["equipped"]["equipment"]["dt"]["capacity"])
+            jsonhandler.setShipAttribute(ctx.author, "shields", 0 if not data["equipped"]["equipment"]["sg"] else data["equipped"]["equipment"]["sg"]["capacity"] * data["equipped"]["tier"])
+            jsonhandler.setShipAttribute(ctx.author, "hull", 0 if not data["equipped"]["equipment"]["sif"] else data["equipped"]["equipment"]["sif"]["capacity"] * data["equipped"]["tier"])
+            repaired = True
+
+    await ctx.respond(message + ("\n\n" if message else "") + "Enemies Encountered: {}\nTotal Earnings:\n\n- Latinum\n  - Bars: {}\n  - Strips: {}\n  - Slips: {}{}".format(enemyCount, earnings["latinum"]["bars"], earnings["latinum"]["strips"], earnings["latinum"]["slips"], "\n\nSuccessfully repaired" if repaired else ""))
+
 @bot.command(description="restart")
 async def restart(ctx: discord.ApplicationContext, gitpull: bool = False):
     if not ctx.author.id == 485513915548041239:
@@ -989,16 +1888,12 @@ async def unrestrictAffiliates(ctx, faction):
 async def on_ready():
     guild = await bot.fetch_guild(878364507385233480)
     channel = await guild.fetch_channel(1051489091339956235)
-
-    for filename in os.listdir('./extensions'):
-        if filename.endswith('.py') and not filename.startswith("_"):
-            bot.load_extension(f'extensions.{filename[:-3]}')
-            print(filename[:-3].capitalize() + " Cog has been loaded\n" + "-"*len(filename[:-3] + " Cog has been loaded") + "\n")
-
     embed = discord.Embed(title="Bot Status: Online", description="UFP Bot now connected to discord", color=0x0055ff)
     await channel.send("<@485513915548041239>", embed=embed)
 
     reserveTask.start()
+    EventReminder.start()
+    PointChecker.start()
     #channel = await guild.fetch_channel(878449851833151488)
     #msg = await channel.fetch_message(1118363480316182669)
     #await msg.edit("Little update on the moderation policy here today:\n\n- Transphobic stuff will lead to an automatic court martial\n\nThis change is because acfc is slowly gaining up on our asses mainly because they are getting curious and seeing the type of shit thats posted here ~~and cuz moderation wont do shit~~\n\n`- Admiral bungochungo`\n||<@&954234917846388826>||")
@@ -1174,28 +2069,28 @@ async def on_interaction(Interaction: discord.Interaction):
                 if not Interaction.user.get_role(1012070243004321802):
                     return await Interaction.respond(content="You aren't a Senior Officer", ephemeral=True)
                 
-                Pointlog = pointlog.Pointlog.FromID(Interaction, LogID)
-                if not Pointlog:
-                    return await Interaction.respond(content="Pointlog no longer exists.", ephemeral=True)
+                Smartlog = smartlog.Smartlog.FromID(Interaction, LogID)
+                if not Smartlog:
+                    return await Interaction.respond(content="Smartlog no longer exists.", ephemeral=True)
 
                 if Action == "Approve":
-                    await Pointlog.Approve(Interaction.channel)
+                    await Smartlog.Approve(Interaction.channel)
                 elif Action == "Edit":
                     await Interaction.respond(content="Begin stating your edits.\n\nCommands:\n    removeuser: <userid or mention>\n    removepoint: <point amount>\n    addmany: <point amount> - <users>", ephemeral=True)
                     
                     EditSuccess = False
 
                     while not EditSuccess:
-                        EditSuccess = await Pointlog.EditPointlogDialog(bot, Interaction)
+                        EditSuccess = await Smartlog.EditSmartlogDialog(bot, Interaction)
 
-                        Pointlog.UpdateEmbed()
+                        Smartlog.UpdateEmbed()
 
-                        await Interaction.edit_original_message(embed=Pointlog.Embed)
+                        await Interaction.edit_original_message(embed=Smartlog.Embed)
 
-                    Pointlog.Log()
+                    Smartlog.Log()
                     await Interaction.respond(content="Successfully edited.", ephemeral=True)
                 elif Action == "Void":
-                    await Pointlog.Delete(Interaction.channel)
+                    await Smartlog.Delete(Interaction.channel)
             elif Action in ["Promote", "Minimum", "Demote"]:
                 if not Interaction.user.get_role(1012070243004321802):
                     return await Interaction.respond(content="You aren't a Senior Officer", ephemeral=True)
@@ -1227,7 +2122,7 @@ async def on_interaction(Interaction: discord.Interaction):
                     await MRChat.send("{} has viewed the event: {}".format(Interaction.user, OriginalMessage.jump_url))
                     eventhandler.AddViewed(LogID, Interaction.user.id)
 
-                await Interaction.respond(embed=embeds.CreateEventEmbed(Interaction.guild, Event["EventType"], Event["EventTimestamp"], Interaction.guild.get_member(Event["EventHost"]), Event["EventNotes"], Event["EventDuration"], LogID), ephemeral=True)
+                await Interaction.respond(embed=CreateEventEmbed(Interaction.guild, Event["EventType"], Event["EventTimestamp"], Interaction.guild.get_member(Event["EventHost"]), Event["EventNotes"], Event["EventDuration"], LogID), ephemeral=True)
             
         except Exception as e:
             error = discord.utils.get(Interaction.guild.channels, id=1051489091339956235)
