@@ -1,6 +1,7 @@
 import discord
-import os
 from discord.ext import commands, tasks
+
+import os
 import sys
 import ast
 import traceback
