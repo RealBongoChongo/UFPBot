@@ -251,7 +251,7 @@ class SmartlogModal(discord.ui.Modal):
 
         self.add_item(discord.ui.InputText(
             style=discord.InputTextStyle.multiline,
-            placeholder="1 - gogomangothacked2341, amazangprizanor, bungochungo\n2 - sniperrifle57, 485513915548041239\n\n-1 - banmched, <@485513915548041239>\n-2 - fatass",
+            placeholder="1 - amazangprizanor\n2 - sniperrifle57, 485513915548041239\n\n-1 - banmched, <@485513915548041239>",
             label="Discord IDs, Discord/Roblox Usernames"
         ))
 
