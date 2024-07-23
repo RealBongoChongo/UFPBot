@@ -1,5 +1,5 @@
 import discord
-from discord.ext import tasks, commands
+from discord.ext import tasks
 
 from copy import deepcopy
 
@@ -68,7 +68,7 @@ class Ranking(discord.Cog):
             UserData["WaitingForRankChange"] = True
             points.WriteKey(str(Member.id), UserData)
 
-    @commands.slash_command(name="my-points", description="Find your points", guild_ids=[878364507385233480])
+    @discord.slash_command(name="my-points", description="Find your points", guild_ids=[878364507385233480])
     async def MyPoints(self, ctx: discord.ApplicationContext):
         Logs = pointlog.ReadJson()
 
@@ -92,7 +92,7 @@ class Ranking(discord.Cog):
 
         await ctx.respond(embed=Embed)
 
-    @commands.slash_command(name="get-points", description="Find someone else's points", guild_ids=[878364507385233480])
+    @discord.slash_command(name="get-points", description="Find someone else's points", guild_ids=[878364507385233480])
     async def GetPoints(self, ctx: discord.ApplicationContext, member: discord.Member):
         Logs = pointlog.ReadJson()
 
@@ -116,7 +116,7 @@ class Ranking(discord.Cog):
 
         await ctx.respond(embed=Embed)
 
-    @commands.slash_command(name="my-logs", description="View the IDs of the logs that you've sent in", guild_ids=[878364507385233480])
+    @discord.slash_command(name="my-logs", description="View the IDs of the logs that you've sent in", guild_ids=[878364507385233480])
     async def ViewMyLogs(self, ctx: discord.ApplicationContext):
         Logs = pointlog.ReadJson()
         OwnedLogs = []
@@ -135,7 +135,7 @@ class Ranking(discord.Cog):
 
         await ctx.respond(embed=Embed)
 
-    @commands.slash_command(name="all-logs", description="View the IDs of the logs that are pending", guild_ids=[878364507385233480])
+    @discord.slash_command(name="all-logs", description="View the IDs of the logs that are pending", guild_ids=[878364507385233480])
     async def ViewPendingLogs(self, ctx: discord.ApplicationContext):
         Logs = pointlog.ReadJson()
         FormattedLogs = []
@@ -151,7 +151,7 @@ class Ranking(discord.Cog):
 
         await ctx.respond(embed=Embed)
 
-    @commands.slash_command(name="view-log", description="View a pointlog", guild_ids=[878364507385233480])
+    @discord.slash_command(name="view-log", description="View a pointlog", guild_ids=[878364507385233480])
     async def ViewLog(self, ctx: discord.ApplicationContext, logid: str):
         Pointlog = pointlog.Pointlog.FromID(logid)
         if not Pointlog:
@@ -161,7 +161,7 @@ class Ranking(discord.Cog):
 
         await ctx.respond(embed=Pointlog.Embed)
 
-    @commands.slash_command(name="ranklock", description="Ranklock someone", guild_ids=[878364507385233480])
+    @discord.slash_command(name="ranklock", description="Ranklock someone", guild_ids=[878364507385233480])
     async def RanklockUser(self, ctx: discord.ApplicationContext, member: discord.Member, setting: bool):
         UserData = points.GetUser(member.id)
 
@@ -171,7 +171,7 @@ class Ranking(discord.Cog):
 
         await ctx.respond("User ranklocked.")
 
-    @commands.slash_command(name="view-consensus", description="View someone's consensus", guild_ids=[878364507385233480])
+    @discord.slash_command(name="view-consensus", description="View someone's consensus", guild_ids=[878364507385233480])
     async def ViewConsensus(self, ctx: discord.ApplicationContext, member: discord.Member):
         UserData = points.GetUser(member.id)
 
@@ -186,7 +186,7 @@ class Ranking(discord.Cog):
 
         await ctx.respond(embed=Embed)
 
-    @commands.slash_command(name="add-consensus", description="Add to someone's consensus", guild_ids=[878364507385233480])
+    @discord.slash_command(name="add-consensus", description="Add to someone's consensus", guild_ids=[878364507385233480])
     async def AddConsensus(self, ctx: discord.ApplicationContext, member: discord.Member, note: str):
         UserData = points.GetUser(member.id)
 
@@ -199,7 +199,7 @@ class Ranking(discord.Cog):
 
         await ctx.respond("Added to consensus.")
 
-    @commands.slash_command(name="remove-consensus", description="Remove an item from someone's consensus", guild_ids=[878364507385233480])
+    @discord.slash_command(name="remove-consensus", description="Remove an item from someone's consensus", guild_ids=[878364507385233480])
     async def RemoveConsensus(self, ctx: discord.ApplicationContext, member: discord.Member, position: int):
         UserData = points.GetUser(member.id)
 
@@ -211,7 +211,7 @@ class Ranking(discord.Cog):
 
         await ctx.respond("Removed item from consensus.")
 
-    @commands.slash_command(name="clear-consensus", description="Clear someone's consensus", guild_ids=[878364507385233480])
+    @discord.slash_command(name="clear-consensus", description="Clear someone's consensus", guild_ids=[878364507385233480])
     async def ClearConsensus(self, ctx: discord.ApplicationContext, member: discord.Member):
         UserData = points.GetUser(member.id)
 
@@ -221,7 +221,7 @@ class Ranking(discord.Cog):
 
         await ctx.respond("Cleared consensus.")
 
-    @commands.slash_command(name="create-pointlog", description="Create a pointlog", guild_ids=[878364507385233480])
+    @discord.slash_command(name="create-pointlog", description="Create a pointlog", guild_ids=[878364507385233480])
     async def CreatePointlog(self, ctx: discord.ApplicationContext):
         await ctx.defer()
 

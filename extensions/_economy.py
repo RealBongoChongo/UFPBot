@@ -1,5 +1,4 @@
 import discord
-from discord.ext import commands
 
 import random
 
@@ -30,7 +29,7 @@ class Economy(discord.Cog):
     def __init__(self, bot: discord.Bot):
         self.bot: discord.Bot = bot
 
-    @commands.slash_command(name="balance", description="Check your amoung of latinum", guild_ids=[878364507385233480])
+    @discord.slash_command(name="balance", description="Check your amoung of latinum", guild_ids=[878364507385233480])
     async def balance(ctx, member:discord.Member=None):
         data = jsonhandler.getAccount(member or ctx.author)
 
@@ -41,7 +40,7 @@ class Economy(discord.Cog):
 
         await ctx.respond(embed=embed)
 
-    @commands.slash_command(name="exchange", description="Exchange your latinum for different pieces of latinum", guild_ids=[878364507385233480])
+    @discord.slash_command(name="exchange", description="Exchange your latinum for different pieces of latinum", guild_ids=[878364507385233480])
     @discord.commands.option("latinumfrom", autocomplete=getLatinumTypes)
     @discord.commands.option("latinumto", autocomplete=getLatinumTypes)
     async def exchangeLatinum(ctx, latinumfrom, latinumto, amount:int=None):
@@ -62,7 +61,7 @@ class Economy(discord.Cog):
 
         await ctx.respond("Done.")
 
-    @commands.slash_command(name="share", description="Scam people or graciously give latinum to people", guild_ids=[878364507385233480])
+    @discord.slash_command(name="share", description="Scam people or graciously give latinum to people", guild_ids=[878364507385233480])
     @discord.commands.option("latinumtype", autocomplete=getLatinumTypes)
     async def shareLatinum(ctx, latinumtype, amount:int, member:discord.Member):
         if not latinumtype.lower() in latinumTypesLower:
@@ -83,7 +82,7 @@ class Economy(discord.Cog):
 
         await ctx.respond("Successfully transferred")
 
-    @commands.slash_command(name="leaderboard", description="Find out who is the richest in latinum", guild_ids=[878364507385233480])
+    @discord.slash_command(name="leaderboard", description="Find out who is the richest in latinum", guild_ids=[878364507385233480])
     async def leaderboardLatinum(ctx):
         networths = jsonhandler.getNetworths()
         leaderboard = sorted(networths, key=lambda x: x["networth"], reverse=True)
@@ -101,7 +100,7 @@ class Economy(discord.Cog):
 
         await ctx.respond(embed=em)
 
-    @commands.slash_command(name="slots", description="Win some latinum", guild_ids=[878364507385233480])
+    @discord.slash_command(name="slots", description="Win some latinum", guild_ids=[878364507385233480])
     @discord.commands.option("latinumtype", autocomplete=getLatinumTypes)
     async def slotsGame(ctx, latinumtype, amount:int):
         if not latinumtype.lower() in latinumTypesLower:
@@ -163,7 +162,7 @@ class Economy(discord.Cog):
 
         await ctx.respond(embed=embed)
 
-    @commands.slash_command(name="snakeeyes", description="Win some latinum", guild_ids=[878364507385233480])
+    @discord.slash_command(name="snakeeyes", description="Win some latinum", guild_ids=[878364507385233480])
     @discord.commands.option("latinumtype", autocomplete=getLatinumTypes)
     async def snakeeyesGame(ctx, latinumtype, amount:int):
         if not latinumtype.lower() in latinumTypesLower:
@@ -210,7 +209,7 @@ class Economy(discord.Cog):
 
         await ctx.respond(embed=embed)
 
-    @commands.slash_command(name="blackjack", description="Win some latinum", guild_ids=[878364507385233480])
+    @discord.slash_command(name="blackjack", description="Win some latinum", guild_ids=[878364507385233480])
     @discord.commands.option("latinumtype", autocomplete=getLatinumTypes)
     async def blackjackGame(ctx, latinumtype, amount:int):
         if not latinumtype.lower() in latinumTypesLower:
@@ -260,7 +259,7 @@ class Economy(discord.Cog):
 
         await msg.edit_original_response(embed=embed, view=view)
 
-    @commands.slash_command(name="free", description="Only works if you are broke", guild_ids=[878364507385233480])
+    @discord.slash_command(name="free", description="Only works if you are broke", guild_ids=[878364507385233480])
     async def freeLatinum(ctx):
         data = jsonhandler.getAccount(ctx.author)
 
@@ -302,7 +301,7 @@ class Economy(discord.Cog):
         
         await ctx.respond(embed=embed, view=upgrades.Interface(ctx))
 
-    @commands.slash_command(name="ship", description="Look at ur ship stats", guild_ids=[878364507385233480])
+    @discord.slash_command(name="ship", description="Look at ur ship stats", guild_ids=[878364507385233480])
     async def shipView(ctx):
         data = jsonhandler.getAccount(ctx.author)
 
@@ -367,7 +366,7 @@ class Economy(discord.Cog):
         
         await ctx.respond(embed=embed, view=upgrades.EquipInterface(ctx))
 
-    @commands.slash_command(name="repair", description="Repair your ship", guild_ids=[878364507385233480])
+    @discord.slash_command(name="repair", description="Repair your ship", guild_ids=[878364507385233480])
     async def repairShip(ctx):
         data = jsonhandler.getAccount(ctx.author)
         if not data["equipped"]:
@@ -387,14 +386,14 @@ class Economy(discord.Cog):
         jsonhandler.setShipAttribute(ctx.author, "hull", 0 if not data["equipped"]["equipment"]["sif"] else data["equipped"]["equipment"]["sif"]["capacity"] * data["equipped"]["tier"])
         await ctx.respond("Successfully repaired")
 
-    @commands.slash_command(name="autorepair", description="Setup auto-repair for after debris scrounging", guild_ids=[878364507385233480])
+    @discord.slash_command(name="autorepair", description="Setup auto-repair for after debris scrounging", guild_ids=[878364507385233480])
     async def autoRepair(ctx, setting:bool):
         data = jsonhandler.getAccount(ctx.author)
         jsonhandler.setSetting(ctx.author, setting)
 
         await ctx.respond("Successfully changed setting")
 
-    @commands.slash_command(name="debris", description="Scrounge through debris", guild_ids=[878364507385233480])
+    @discord.slash_command(name="debris", description="Scrounge through debris", guild_ids=[878364507385233480])
     async def debris(ctx):
         await ctx.defer()
         data = jsonhandler.getAccount(ctx.author)
