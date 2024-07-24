@@ -319,7 +319,7 @@ async def EventReminder():
 
             await EventChannel.send("<@&954234917846388826> **This event starts in less than an hour.**", view=View)
 
-            eventhandler.EditEvent(EventID, EventData)
+            eventhandler.WriteKey(EventID, EventData)
 
         if EventData["EventTimestamp"] < TimestampNow and not EventData["Announced"]:
             EventData["Announced"] = True
@@ -329,7 +329,7 @@ async def EventReminder():
 
             await EventChannel.send("<@&954234917846388826> **This event has started.**", view=View)
 
-            eventhandler.EditEvent(EventID, EventData)
+            eventhandler.WriteKey(EventID, EventData)
 
 @tasks.loop(minutes=10)
 async def PointChecker():
