@@ -314,18 +314,20 @@ async def EventReminder():
         if not EventData["Reminded"]:
             EventData["Reminded"] = True
 
-            EventEmbed = CreateEventEmbed(UFP, EventData["EventType"], EventData["EventTimestamp"], UFP.get_member(EventData["EventHost"]), EventData["EventNotes"], EventData["EventDuration"], EventID)
+            View = discord.ui.View()
+            View.add_item(EventButton("View Event", EventID))
 
-            await EventChannel.send("<@&954234917846388826> **This event starts in less than an hour.**", embed=EventEmbed)
+            await EventChannel.send("<@&954234917846388826> **This event starts in less than an hour.**", view=View)
 
             eventhandler.EditEvent(EventID, EventData)
 
         if EventData["EventTimestamp"] < TimestampNow and not EventData["Announced"]:
             EventData["Announced"] = True
 
-            EventEmbed = CreateEventEmbed(UFP, EventData["EventType"], EventData["EventTimestamp"], UFP.get_member(EventData["EventHost"]), EventData["EventNotes"], EventData["EventDuration"], EventID)
+            View = discord.ui.View()
+            View.add_item(EventButton("View Event", EventID))
 
-            await EventChannel.send("<@&954234917846388826> **This event has started.**", embed=EventEmbed)
+            await EventChannel.send("<@&954234917846388826> **This event has started.**", view=View)
 
             eventhandler.EditEvent(EventID, EventData)
 
